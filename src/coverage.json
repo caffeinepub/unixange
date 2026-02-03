@@ -1,0 +1,67 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-03T20:45:33.079Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 3,
+    "implemented": 3,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "Fix the authenticated user flow so the app never gets stuck on the \"Loading your profile...\" screen due to a missing/cleared auth intent (login vs signup). If `authIntent` is unavailable (e.g., lost across the Internet Identity redirect), the UI must still resolve deterministically: (a) if a caller profile exists, render the app; (b) if no profile exists, show a clear profile creation path (equivalent to signup) without an infinite loading state.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/utils/authIntent.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/utils/authIntent.ts"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Harden the ProfileSetup gating logic to handle the full matrix of states without dead-ends: unauthenticated, authenticated+profile loading, authenticated+profile exists but invalid domain, authenticated+no profile. Ensure all states have a terminal UI outcome and that the profile query result (exists vs null) can be used even when auth intent is missing.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ProfileSetup.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProfileSetup.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Ensure React Query profile fetching and actor/identity initialization do not produce false \"Unauthorized\" failures that break onboarding. The profile fetch must only run when the user is authenticated and an authenticated actor is ready, and any transient actor/identity transitions during login must not trap the UI in loading or error loops.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/hooks/useActor.ts",
+          "frontend/src/components/Header.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/Header.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/ProfileSetup.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/utils/authIntent.ts",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

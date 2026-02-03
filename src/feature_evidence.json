@@ -1,0 +1,67 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-fix-the-authenticated-user-flow-so-the-app-never-gets-stuck-on-the-loading-your-profile-screen-due-to-a-missing-cleared-auth-intent-login-vs-signup-if-authintent-is-unavailable-e-g-lost-across-the-internet-identity-redirect-the-ui-must-still-resolve-deterministically-a-if-a-caller-profile-exists-render-the-app-b-if-no-profile-exists-show-a-clear-profile-creation-path-equivalent-to-signup-without-an-infinite-loading-state",
+      "featureTitle": "Fix the authenticated user flow so the app never gets stuck on the \"Loading your profile...\" screen due to a missing/cleared auth intent (login vs signup). If `authIntent` is unavailable (e.g., lost across the Internet Identity redirect), the UI must still resolve deterministically: (a) if a caller profile exists, render the app; (b) if no profile exists, show a clear profile creation path (equivalent to signup) without an infinite loading state.",
+      "files": [
+        "frontend/src/components/ProfileSetup.tsx",
+        "frontend/src/utils/authIntent.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-harden-the-profilesetup-gating-logic-to-handle-the-full-matrix-of-states-without-dead-ends-unauthenticated-authenticated-profile-loading-authenticated-profile-exists-but-invalid-domain-authenticated-no-profile-ensure-all-states-have-a-terminal-ui-outcome-and-that-the-profile-query-result-exists-vs-null-can-be-used-even-when-auth-intent-is-missing",
+      "featureTitle": "Harden the ProfileSetup gating logic to handle the full matrix of states without dead-ends: unauthenticated, authenticated+profile loading, authenticated+profile exists but invalid domain, authenticated+no profile. Ensure all states have a terminal UI outcome and that the profile query result (exists vs null) can be used even when auth intent is missing.",
+      "files": [
+        "frontend/src/components/ProfileSetup.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-react-query-profile-fetching-and-actor-identity-initialization-do-not-produce-false-unauthorized-failures-that-break-onboarding-the-profile-fetch-must-only-run-when-the-user-is-authenticated-and-an-authenticated-actor-is-ready-and-any-transient-actor-identity-transitions-during-login-must-not-trap-the-ui-in-loading-or-error-loops",
+      "featureTitle": "Ensure React Query profile fetching and actor/identity initialization do not produce false \"Unauthorized\" failures that break onboarding. The profile fetch must only run when the user is authenticated and an authenticated actor is ready, and any transient actor/identity transitions during login must not trap the UI in loading or error loops.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

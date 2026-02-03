@@ -1,0 +1,495 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 63,
+  "summary": "UniXange direction updated to a from-scratch rebuild on the Internet Computer stack (React frontend + Motoko backend) with Internet Identity authentication, a strict university-email gate (target domain: @jainuniversity.ac.in), self-service user registration (avoiding admin-token traps), persistent sessions, rebuilt core marketplace flows (Buy/Sell, Rent with availability logic, Lost & Found), user dashboard/profile with activity history, Amazon-level UX polish, and hardened backend logic emphasizing stable persistence and upgrade safety.",
+  "existing_features": [
+    {
+      "id": "IF-1",
+      "title": "Internet Identity authentication provider",
+      "synonyms": [
+        "II auth",
+        "Internet Identity login"
+      ],
+      "description": "Provides login/logout and identity persistence using @dfinity/auth-client. Exposes identity and login state via React context, supports long-lived delegations (30 days), and disables default idle logout behavior.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-2",
+      "title": "Backend actor creation with identity binding",
+      "synonyms": [
+        "actor factory",
+        "authenticated/anonymous actor"
+      ],
+      "description": "Creates an anonymous backend actor when unauthenticated and an identity-bound actor when authenticated. Recreates the actor when principal changes and invalidates/refetches dependent React Query caches.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-3",
+      "title": "Secret-based access-control initialization",
+      "synonyms": [
+        "admin token init",
+        "_initializeAccessControlWithSecret"
+      ],
+      "description": "On actor initialization, frontend reads a secret admin token from the URL hash (stored in sessionStorage and cleared from URL), then calls the backend initializer so the first correct caller becomes admin and others become users.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-4",
+      "title": "Role-based access control (admin/user/guest)",
+      "synonyms": [
+        "RBAC",
+        "authorization"
+      ],
+      "description": "Motoko AccessControl module tracks roles per Principal, supports admin assignment (first valid caller), permission checks, admin-only role assignment, and helper queries (getCallerUserRole/isCallerAdmin).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-5",
+      "title": "User profile storage and retrieval",
+      "synonyms": [
+        "profiles",
+        "account profile"
+      ],
+      "description": "Backend supports getting and saving the caller’s profile (name/email/university) with user-only permissions, plus admin-restricted access to view other users’ profiles. Frontend provides hooks for fetching and saving.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-6",
+      "title": "Profile setup gating (required on first login)",
+      "synonyms": [
+        "onboarding modal",
+        "profile completion"
+      ],
+      "description": "Frontend displays a blocking profile setup dialog for authenticated users without an existing profile and prevents route content from rendering until the profile is created.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-7",
+      "title": "Buy marketplace browsing with client-side filtering",
+      "synonyms": [
+        "Buy section",
+        "browse for-sale items"
+      ],
+      "description": "Displays all buy/sell listings with category and max-price filters. Shows loading states and network-error retry UI; renders item cards with images and conditional owner actions (delete vs contact).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-8",
+      "title": "Sell section (my listings management)",
+      "synonyms": [
+        "My listings",
+        "Sell section"
+      ],
+      "description": "Shows only the authenticated user’s buy/sell listings (filtered by seller principal). Allows posting items via modal (login required) and deleting owned items with confirmation.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-9",
+      "title": "Post buy/sell items with optional images",
+      "synonyms": [
+        "addBuySellItem",
+        "sell post"
+      ],
+      "description": "Authenticated users can create for-sale listings with title/description/price/condition/category and optional images. Frontend converts uploaded files to Uint8Array and also generates ExternalBlob references.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-10",
+      "title": "Rental marketplace browsing and listing",
+      "synonyms": [
+        "Rent section",
+        "listForRent"
+      ],
+      "description": "Displays rental items with availability status. Authenticated users can list items for rent with daily price, condition, and category, and delete their own rental listings.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-11",
+      "title": "Lost & Found reporting and browsing",
+      "synonyms": [
+        "LostFound section",
+        "postLostItem/postFoundItem"
+      ],
+      "description": "Tabbed Lost/Found views backed by a single lost&found store. Authenticated users can choose between reporting lost or found items, post listings with location and optional images, and delete their own entries.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-12",
+      "title": "Mark lost & found items as recovered",
+      "synonyms": [
+        "recovery status",
+        "markAsRecovered"
+      ],
+      "description": "Backend supports updating a lost/found item status to \"recovered\" (owner/admin only). Frontend provides a mutation hook and cache invalidation for lost/found items.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-13",
+      "title": "Item deletion with ownership/admin enforcement",
+      "synonyms": [
+        "deleteItem",
+        "deleteLostFoundItem"
+      ],
+      "description": "Backend provides deletion endpoints for buy/sell+rental items and for lost&found items, enforcing owner-or-admin authorization. Frontend uses a confirmation modal and invalidates relevant queries on success.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-14",
+      "title": "Resilient data layer with standardized error handling",
+      "synonyms": [
+        "React Query hooks",
+        "error categorization"
+      ],
+      "description": "Centralized hooks implement query/mutation logic with consistent error formatting (auth/network/validation/server), retry rules (no auth retries), and query invalidation after mutations. Some queries degrade gracefully by returning empty lists on network failures.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-15",
+      "title": "Media display via direct storage URLs or embedded bytes",
+      "synonyms": [
+        "image rendering",
+        "ExternalBlob getDirectURL"
+      ],
+      "description": "Item cards render images using a provided direct URL from ExternalBlob when available, otherwise create an object URL from embedded image bytes. Add-item modal supports multiple image previews and removal.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-16",
+      "title": "Blob storage maintenance mixin (gateway auth, GC, cycles refill)",
+      "synonyms": [
+        "caffeine storage",
+        "storage gateway"
+      ],
+      "description": "Backend includes storage mixin endpoints to update authorized gateway principals, check if a blob is live, list dead blobs for deletion, confirm pruning + trigger GC, create upload certificates, and refill a cashier canister with cycles.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-17",
+      "title": "Core UI shell (routing, header/footer, theming)",
+      "synonyms": [
+        "layout",
+        "navigation"
+      ],
+      "description": "App layout includes sticky header with search input, route navigation, responsive mobile menu, login/logout entry, footer, and theme support (light/dark) using Tailwind design tokens.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-18",
+      "title": "Homepage with category shortcuts and recent listings",
+      "synonyms": [
+        "landing page",
+        "recent items"
+      ],
+      "description": "Homepage provides hero CTA, category shortcut tiles (Buy/Sell/Rent/Lost&Found), and a Recent Listings section showing latest for-sale items and available rentals.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-19",
+      "title": "Backend minimal item feed generation",
+      "synonyms": [
+        "toMinimalItemList",
+        "minimal listings"
+      ],
+      "description": "Backend can generate a compact cross-section list of items (buy/sell + rentals) including a single preview image and type discriminator for lightweight feeds.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-20",
+      "title": "Secure URL-secret handling utilities",
+      "synonyms": [
+        "hash secret extraction",
+        "admin token persistence"
+      ],
+      "description": "Utility functions read secret parameters from the URL hash (preferred over query params), persist them in sessionStorage, and remove them from the URL to reduce history/referrer leakage.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-21",
+      "title": "Floating add-item entry point with per-section visibility",
+      "synonyms": [
+        "FloatingAddButton",
+        "create listing CTA",
+        "section-scoped add button"
+      ],
+      "description": "Frontend provides a standardized floating \"+\" add button / entry point for creating listings, with logic to show/hide or route the action depending on the active section (Buy/Sell/Rent/Lost & Found). Integrates with AddItemModal and login gating.",
+      "reqIds": [
+        "AR-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-22",
+      "title": "Header profile icon replaces Account text",
+      "synonyms": [
+        "profile logo",
+        "account icon",
+        "avatar in header"
+      ],
+      "description": "Header/navigation replaces the textual “Account” entry with a profile icon/avatar-style control while preserving login/logout and profile access behavior.",
+      "reqIds": [
+        "AR-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-23",
+      "title": "Indian Rupee (₹) price localization in UI",
+      "synonyms": [
+        "INR pricing",
+        "₹ currency display"
+      ],
+      "description": "Price input/display is localized/standardized to Indian Rupee (₹) across item creation and listing cards/views to ensure consistent currency presentation.",
+      "reqIds": [
+        "AR-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-24",
+      "title": "Improved sticky header backdrop blur on scroll",
+      "synonyms": [
+        "header blur",
+        "backdrop-filter",
+        "sticky header polish"
+      ],
+      "description": "Sticky header gains an improved blur/backdrop effect when scrolling to better separate navigation from page content in the OLX-inspired design.",
+      "reqIds": [
+        "AR-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-25",
+      "title": "Homepage no-repeat layout ending after Recent Listings",
+      "synonyms": [
+        "homepage repetition fix",
+        "landing page ends after recent listings"
+      ],
+      "description": "Homepage layout is corrected to stop after the Recent Listings section with the footer immediately following (removes repeated/duplicated sections).",
+      "reqIds": [
+        "AR-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-26",
+      "title": "Footer attribution removal and updated copyright",
+      "synonyms": [
+        "footer copy update",
+        "remove caffeine ai attribution",
+        "© 2026"
+      ],
+      "description": "Footer removes the “using caffeine ai” attribution and updates copyright to “© 2026 UniXange. All rights reserved.”",
+      "reqIds": [
+        "AR-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-27",
+      "title": "OLX-inspired UI refresh across all pages",
+      "synonyms": [
+        "marketplace UI redesign",
+        "OLX styling refresh",
+        "site-wide redesign"
+      ],
+      "description": "All primary pages (Home/Buy/Sell/Rent/Lost & Found) and shared shell (header/footer/cards/modals) are restyled with a cohesive OLX-inspired marketplace look while keeping the existing route/layout structure.",
+      "reqIds": [
+        "AR-1",
+        "AR-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-28",
+      "title": "Section/list deduplication utility to prevent duplicate renders",
+      "synonyms": [
+        "dedupe utility",
+        "unique-by-id rendering"
+      ],
+      "description": "Frontend includes a shared deduplication helper used by pages/feeds to ensure sections and item lists are rendered once (prevents duplicated/repeating homepage and section content caused by repeated/overlapping data sources or route composition).",
+      "reqIds": [
+        "AR-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-29",
+      "title": "Buy section browse-only (floating add-item CTA removed/hidden)",
+      "synonyms": [
+        "remove + on Buy page",
+        "Buy browse-only CTA behavior"
+      ],
+      "description": "The Buy page does not surface the floating “+” add-item entry point; listing creation remains available from Sell/Rent/Lost & Found with auth gating.",
+      "reqIds": [
+        "AR-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-30",
+      "title": "Graceful access-control role handling for uninitialized principals (no traps)",
+      "synonyms": [
+        "self-service role init",
+        "no-trap RBAC",
+        "default role handling"
+      ],
+      "description": "Backend authorization/access-control logic is updated so non-anonymous callers that are not yet initialized/registered do not trap; callers receive a safe default role/handling so normal onboarding and protected-method checks work without requiring a prior secret-based initializer call.",
+      "reqIds": [
+        "AR-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-31",
+      "title": "University email gate enforced (@jainuniversity.ac.in) with explicit Login vs Sign up auth intent",
+      "synonyms": [
+        "university domain gate",
+        "email allowlist gate",
+        "authIntent",
+        "login vs signup modal"
+      ],
+      "description": "After successful Internet Identity authentication, the app requires an onboarding/profile email that strictly ends with @jainuniversity.ac.in. Users failing the domain check are blocked from accessing marketplace content (browse/create) and cannot complete profile setup. Auth UI provides an explicit \"Login\" vs \"Sign up\" choice (intent) while still using Internet Identity; both flows enforce the same domain gate immediately post-II. Defense-in-depth: frontend validates the email domain and backend authorization also enforces the university gate for protected marketplace/profile operations.",
+      "reqIds": [
+        "AR-15",
+        "AR-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-authenticated-user-flow-so-the-app-never-gets-stuck-on-the-loading-your-profile-screen-due-to-a-missing-cleared-auth-intent-login-vs-signup-if-authintent-is-unavailable-e-g-lost-across-the-internet-identity-redirect-the-ui-must-still-resolve-deterministically-a-if-a-caller-profile-exists-render-the-app-b-if-no-profile-exists-show-a-clear-profile-creation-path-equivalent-to-signup-without-an-infinite-loading-state",
+      "title": "Fix the authenticated user flow so the app never gets stuck on the \"Loading your profile...\" screen due to a missing/cleared auth intent (login vs signup). If `authIntent` is unavailable (e.g., lost across the Internet Identity redirect), the UI must still resolve deterministically: (a) if a caller profile exists, render the app; (b) if no profile exists, show a clear profile creation path (equivalent to signup) without an infinite loading state.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-harden-the-profilesetup-gating-logic-to-handle-the-full-matrix-of-states-without-dead-ends-unauthenticated-authenticated-profile-loading-authenticated-profile-exists-but-invalid-domain-authenticated-no-profile-ensure-all-states-have-a-terminal-ui-outcome-and-that-the-profile-query-result-exists-vs-null-can-be-used-even-when-auth-intent-is-missing",
+      "title": "Harden the ProfileSetup gating logic to handle the full matrix of states without dead-ends: unauthenticated, authenticated+profile loading, authenticated+profile exists but invalid domain, authenticated+no profile. Ensure all states have a terminal UI outcome and that the profile query result (exists vs null) can be used even when auth intent is missing.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-react-query-profile-fetching-and-actor-identity-initialization-do-not-produce-false-unauthorized-failures-that-break-onboarding-the-profile-fetch-must-only-run-when-the-user-is-authenticated-and-an-authenticated-actor-is-ready-and-any-transient-actor-identity-transitions-during-login-must-not-trap-the-ui-in-loading-or-error-loops",
+      "title": "Ensure React Query profile fetching and actor/identity initialization do not produce false \"Unauthorized\" failures that break onboarding. The profile fetch must only run when the user is authenticated and an authenticated actor is ready, and any transient actor/identity transitions during login must not trap the UI in loading or error loops.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-9",
+      "summary": "Update typography to a more professional font system (font family + hierarchy)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Rebuild UniXange from scratch with clean project initialization (frontend + Motoko backend) to avoid prior structural issues/expiry problems",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Harden backend for stable persistence and upgrade safety (data stability across upgrades, role/security checks)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Polish UI/UX toward an Amazon-level flow (fast navigation, smooth transitions, responsive) while keeping campus marketplace functionality",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "From-scratch rebuild execution order: (1) clean project structure (frontend routes + Motoko modules) → (2) Internet Identity auth + @jainuniversity.ac.in domain gate (no outbound email) + self-service registration → (3) upgrade-safe data model/back-end architecture review for Buy/Sell/Rent/Lost&Found",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Create an admin portal for UniXange (admin-only UI for managing users, roles, listings, moderation, and platform settings)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Restrict admin portal access to a specific allowlist of approved email addresses (admin email allowlist)",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "architecturalNotes": [
+    "Frontend is a React SPA using TanStack Router for route composition (root layout + nested routes) and @tanstack/react-query for all backend I/O, caching, retries, and invalidation.",
+    "Authentication is handled via a custom InternetIdentityProvider built on @dfinity/auth-client; identity is exposed via React context and used to create authenticated backend actors.",
+    "Backend is a Motoko actor with in-memory state based on mo:core/Map (items, lost&found items, user profiles) and incremental Nat IDs.",
+    "Backend uses mixin-style composition (include MixinAuthorization, include MixinStorage) to add cross-cutting functionality without bloating the main actor.",
+    "Role-based access control is implemented in a dedicated module (authorization/access-control.mo) and initialized on the frontend by calling _initializeAccessControlWithSecret; first valid caller with the admin token becomes admin, others become users.",
+    "Images are supported both as embedded bytes (Blob/Uint8Array) and as storage references (ExternalBlob) that can provide direct URLs; frontend displays either the direct URL or a locally-created object URL from bytes.",
+    "UI is built with Tailwind + shadcn-style components and next-themes for light/dark theming; design targets a minimalist beige/white/black aesthetic.",
+    "Error handling strategy: frontend normalizes backend/agent errors into categories, avoids retrying auth/validation failures, and degrades gracefully for network issues by returning empty lists for some queries.",
+    "Pricing/currency should support localization (currently requested: ₹ INR) and be represented consistently across UI + stored values.",
+    "Unauthenticated attempts to create content should trigger an auth prompt/modal rather than failing silently.",
+    "UI redesign direction updated: apply an OLX-inspired marketplace styling across all pages (including footer) while keeping existing layout/structure.",
+    "A standardized floating add-item CTA (FloatingAddButton) is used as the primary listing creation entry point, with section-aware visibility/behavior and integration with existing AddItemModal + auth gating.",
+    "Homepage should render each hero/section/slide exactly once (no duplicated sections); footer should follow immediately after the last intended section (e.g., Recent Listings).",
+    "Frontend includes a shared dedupe utility (e.g., unique-by-id) applied to homepage/section feeds to prevent repeated sections or duplicated listings from rendering multiple times.",
+    "Planned from-scratch rebuild: re-initialize frontend + Motoko backend cleanly, then layer auth foundation before feature flows to prevent recurring structural issues.",
+    "Authentication plan: Internet Identity with first-login university email gate restricted to @jainuniversity.ac.in; aim for self-service onboarding without admin-token initialization traps.",
+    "Backend hardening goal: emphasize stable persistence and upgrade safety (state stability across upgrades) along with stricter role/security checks.",
+    "Rebuild sequencing confirmed by user: start with clean project structure (frontend routes + backend module layout), then implement university-gated Internet Identity auth/profile (without outbound email verification), then finalize upgrade-safe data models/back-end architecture for core flows (Buy/Sell/Rent/Lost & Found).",
+    "Repository now includes a build-template scaffold (Dockerfile, deploy.sh, icp.yaml, pnpm workspace, canister.yaml templates, and frontend ESLint custom rules) plus scripts for pruning/resizing images, indicating a standardized/reproducible build & deployment workflow has been integrated alongside the app source.",
+    "Decision confirmed: Buy section is browse-only; remove/hide the floating “+” add-item CTA on the Buy page while keeping item creation available from Sell/Rent/Lost & Found.",
+    "Authorization/access-control updated to avoid trapping for non-anonymous but uninitialized principals; role lookups/defaults are handled safely to prevent breaking protected calls during normal onboarding.",
+    "Authorization/bootstrap hardening: backend authorization initialization and role checks were adjusted to avoid runtime traps from missing/incorrect environment configuration during normal operation (shifting toward safer defaults/guarded handling instead of trapping).",
+    "Blob-storage configuration hardening: storage-related environment variable usage was updated to prevent runtime traps due to misconfigured env vars (e.g., corrected/validated env var names and safer reads).",
+    "University email gate must be strict: only allow emails ending with @jainuniversity.ac.in (reject all other domains) during first-login/profile capture; enforce on both frontend validation and backend authorization checks so non-matching users cannot access or create marketplace content.",
+    "Enforce the university email gate at the login/onboarding boundary: immediately after Internet Identity login (during first-login profile capture / before granting app access), validate that the provided email ends with @jainuniversity.ac.in; if it does not match, block access and prevent browsing/creating any marketplace content (defense-in-depth: validate on both frontend and backend).",
+    "Auth UI should present an explicit \"Login\" vs \"Sign up\" choice (even with Internet Identity) to guide new users into first-time profile capture and existing users into normal login; both flows must still enforce the @jainuniversity.ac.in gate immediately after successful II login.",
+    "Auth UX + gate timing confirmed: present explicit Login vs Sign up choice; after the user clicks Login/Sign up and completes Internet Identity, immediately run the first-login/profile email check and block access unless the email ends with @jainuniversity.ac.in (no browsing/creating content until it passes).",
+    "Auth intent is tracked explicitly on the frontend (Login vs Sign up) and carried through the Internet Identity flow so first-time users are routed into profile capture while existing users follow standard login; both paths are still subject to the university email domain gate.",
+    "A shared universityEmail utility centralizes strict domain validation (suffix match for @jainuniversity.ac.in) to keep frontend validation consistent and auditable alongside backend enforcement.",
+    "Admin portal access model to support: restrict /admin (or admin-only UI entry) to a fixed allowlist of specific admin email addresses (in addition to role checks), separate from the general @jainuniversity.ac.in gate; enforce both on frontend routing/navigation and backend authorization for admin APIs."
+  ],
+  "knownIssues": [
+    "Two different CSS files are shown for \"frontend/index.css\" vs \"frontend/src/index.css\" in the provided listing; if both exist in-repo, it can create confusion or unintended styling depending on import paths and build config.",
+    "useGetCallerUserProfile runs whenever an actor exists (including anonymous actors). For unauthenticated users this can reliably error (Unauthorized) and may produce unnecessary console noise unless suppressed/disabled when identity is absent.",
+    "Login + profile onboarding flow is not working (users cannot successfully log in and/or complete/load profiles after authentication).",
+    "Homepage content (all sections except header) is duplicating / rendering twice instead of once (sections repeat before footer).",
+    "Listing creation/posting still intermittently fails (especially Sell/Rent) and may surface as connection/add-item errors despite attempted fixes.",
+    "Login/profile flow still not working: after Internet Identity auth, users are being led/stuck (likely redirect loop or profile gate not resolving), preventing successful profile load/onboarding completion."
+  ],
+  "isFixRequest": true,
+  "gameProjectType": "none",
+  "projectName": "UniXange",
+  "clarification_mode": "pro",
+  "clarification_rounds": 0,
+  "requiresBackendChanges": false,
+  "requiresFrontendChanges": true
+}

@@ -1,0 +1,48 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-03T20:45:33.028Z",
+  "summary": "Diff implements authIntent persistence (sessionStorage), improves logout state clearing, and hardens React Query profile fetching to only run when authenticated actor is ready with reduced auth-error noise. However, the diff evidence is insufficient to confirm the full ProfileSetup gating matrix—especially the explicit invalid-domain access-denied screen with logout.",
+  "missing_requirements": [
+    {
+      "id": "REQ-2",
+      "requirement": "When authenticated and the profile exists but email is not @jainuniversity.ac.in, an access denied screen is shown with a working logout action.",
+      "reason": "ProfileSetup code is truncated before showing the authenticated/profile-exists branches; the provided snippet only shows unauthenticated welcome UI and profile creation validation, but does not evidence an explicit access-denied terminal UI for an existing profile with an invalid domain, nor the associated logout action on that screen.",
+      "evidence": [
+        "frontend/src/components/ProfileSetup.tsx (truncated)"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Large marketplace/OLX-inspired UI redesign (global OKLCH color system, typography, shadows, tailwind tokens) unrelated to fixing login/profile onboarding loading issues.",
+      "reason": "Not requested by BuildRequest; appears as broad styling scope expansion.",
+      "evidence": [
+        "frontend-file-summaries.txt (mentions frontend/src/index.css, frontend/tailwind.config.js, Homepage styling changes)"
+      ]
+    },
+    {
+      "description": "Behavioral/product changes to marketplace pages (e.g., making Buy page browse-only and removing posting UI; adding/altering profile gates across Sell/Rent/Lost&Found; enhanced item cards/modals).",
+      "reason": "Explicitly out of scope per non-goals (no marketplace feature changes); these changes go beyond the authentication/profile loading fix.",
+      "evidence": [
+        "frontend-file-summaries.txt (mentions frontend/src/pages/BuySection.tsx, SellSection.tsx, RentSection.tsx, LostFoundSection.tsx, ItemCard.tsx, AddItemModal.tsx, FloatingAddButton.tsx)"
+      ]
+    },
+    {
+      "description": "Footer simplification/minimal footer component update.",
+      "reason": "Not requested by the BuildRequest and unrelated to the login/profile onboarding loading bug.",
+      "evidence": [
+        "frontend-file-summaries.txt (mentions frontend/src/components/Footer.tsx)"
+      ]
+    }
+  ],
+  "confidence": 0.62,
+  "changed_files": [
+    "frontend-file-summaries.txt",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/ProfileSetup.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/utils/authIntent.ts",
+    "project_state.json"
+  ]
+}

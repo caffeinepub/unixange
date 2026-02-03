@@ -1,0 +1,23 @@
+{
+  "frontend/src/App.tsx": "Main application component with TanStack Router setup and Layout component that wraps a single Outlet with ProfileSetup for proper single-render routing; removed duplicate QueryClientProvider as main.tsx already provides it.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks with improved error handling that reduces retry noise during auth transitions, adds staleTime caching to profile queries, and silences auth errors during login flows.",
+  "frontend/src/index.css": "Global styles with OLX-inspired marketplace OKLCH color system featuring vibrant primary teal/blue, defined borders, marketplace-specific shadow utilities, and Inter font family for professional typography across light and dark modes.",
+  "frontend/tailwind.config.js": "Tailwind configuration extended with Inter font family and marketplace-focused design tokens matching the OLX-inspired color system and shadow utilities.",
+  "frontend/src/components/Header.tsx": "Sticky header with marketplace navigation and authentication controls; logout now clears all queries and navigates to home for clean state reset.",
+  "frontend/src/components/Footer.tsx": "Minimal footer component displaying only the copyright notice for UniXange with centered layout and marketplace styling.",
+  "frontend/src/components/ProfileSetup.tsx": "Profile setup gate that validates authentication and university email domain; now resolves based on profile query result without blocking on missing authIntent, allowing existing users to proceed and new users to create profiles.",
+  "frontend/src/components/FloatingAddButton.tsx": "Floating action button with primary background, 2px border, large size (16x16), marketplace shadow, and scale-up hover effect for prominent marketplace CTA.",
+  "frontend/src/components/AddItemModal.tsx": "Item posting modal with enhanced error categorization, clear user-facing messages for auth/profile/network failures, and improved error display with contextual icons and titles.",
+  "frontend/src/components/ItemCard.tsx": "Marketplace-style item card with 2px borders, defined shadows, bold price typography with number formatting, hover scale effect, primary border on hover, and prominent Contact/Delete buttons.",
+  "frontend/src/pages/BuySection.tsx": "Browse-only Buy page with filters and item display; FloatingAddButton and AddItemModal removed to make it strictly a browsing interface.",
+  "frontend/src/pages/SellSection.tsx": "Sell/My Listings page with profile gate that checks authentication and valid university profile before allowing item posting via FloatingAddButton.",
+  "frontend/src/pages/RentSection.tsx": "Rent section with profile gate that validates authentication and university profile before opening AddItemModal for listing rental items.",
+  "frontend/src/pages/LostFoundSection.tsx": "Lost & Found section with profile gate on both floating button and choice dialog that ensures users have valid profiles before reporting lost/found items.",
+  "frontend/src/pages/Homepage.tsx": "Homepage with OLX-inspired marketplace design featuring gradient hero section, bold typography, category cards with primary-colored icons and hover effects, and recent listings sections with marketplace styling.",
+  "frontend/index.html": "HTML entry point with proper DOCTYPE, meta tags, and UniXange title for the university exchange platform.",
+  "frontend/src/components/LoginModal.tsx": "Authentication modal that presents two explicit options (Login and Sign up) using Internet Identity, with each action setting the appropriate auth intent before authentication.",
+  "frontend/src/components/DeleteConfirmationModal.tsx": "Minimalist confirmation modal using AlertDialog that prompts users to confirm item deletion with Cancel and Delete buttons, featuring consistent beige/black/white theme and backdrop blur effect.",
+  "frontend/src/utils/universityEmail.ts": "Utility module for validating Jain University email addresses (@jainuniversity.ac.in) with case-insensitive checking and user-friendly error messages.",
+  "frontend/src/utils/authIntent.ts": "Utility module for persisting authentication intent across Internet Identity redirects with hardened error handling that returns null on failures instead of throwing.",
+  "frontend/src/hooks/useActor.ts": "Actor initialization hook that tracks principal changes and only invalidates dependent queries when identity actually changes (not on initial mount), reducing refetch churn during login transitions."
+}
