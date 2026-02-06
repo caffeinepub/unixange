@@ -8,6 +8,10 @@ import BuySection from '@/pages/BuySection';
 import SellSection from '@/pages/SellSection';
 import RentSection from '@/pages/RentSection';
 import LostFoundSection from '@/pages/LostFoundSection';
+import About from '@/pages/About';
+import Contact from '@/pages/Contact';
+import Terms from '@/pages/Terms';
+import Privacy from '@/pages/Privacy';
 import ProfileSetup from '@/components/ProfileSetup';
 
 function Layout() {
@@ -58,7 +62,41 @@ const lostFoundRoute = createRoute({
   component: LostFoundSection,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, buyRoute, sellRoute, rentRoute, lostFoundRoute]);
+const aboutRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/about',
+  component: About,
+});
+
+const contactRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/contact',
+  component: Contact,
+});
+
+const termsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/terms',
+  component: Terms,
+});
+
+const privacyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/privacy',
+  component: Privacy,
+});
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  buyRoute,
+  sellRoute,
+  rentRoute,
+  lostFoundRoute,
+  aboutRoute,
+  contactRoute,
+  termsRoute,
+  privacyRoute,
+]);
 
 const router = createRouter({ routeTree });
 

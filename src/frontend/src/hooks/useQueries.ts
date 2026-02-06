@@ -1,13 +1,21 @@
 import { useActor } from './useActor';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInternetIdentity } from './useInternetIdentity';
-import type { UserProfile, BuySellItem, RentalItem, LostFoundItem } from '@/backend';
+import type { UserProfile, BuySellItem, RentalItem, LostFoundItem, OnboardingAnswers } from '@/backend';
 import { ExternalBlob } from '@/backend';
+import { withTimeout } from '@/utils/promiseTimeout';
 
 // Helper function to categorize and format errors
-function formatError(error: any): { message: string; category: 'auth' | 'network' | 'validation' | 'server' } {
+function formatError(error: any): { message: string; category: 'auth' | 'network' | 'validation' | 'server' | 'timeout' } {
   const errorMessage = error?.message || String(error);
   const lowerMessage = errorMessage.toLowerCase();
+  
+  if (lowerMessage.includes('timeout') || lowerMessage.includes('timed out')) {
+    return {
+      message: 'Request timed out. The network may be slow. Please try again.',
+      category: 'timeout',
+    };
+  }
   
   if (lowerMessage.includes('unauthorized') || 
       lowerMessage.includes('authentication') ||
@@ -30,13 +38,6 @@ function formatError(error: any): { message: string; category: 'auth' | 'network
     return {
       message: errorMessage,
       category: 'validation',
-    };
-  }
-  
-  if (lowerMessage.includes('timeout') || lowerMessage.includes('timed out')) {
-    return {
-      message: 'Request timed out. The network may be slow. Please try again.',
-      category: 'network',
     };
   }
   
@@ -63,7 +64,13 @@ export function useGetCallerUserProfile() {
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       try {
-        return await actor.getCallerUserProfile();
+        // Wrap the profile fetch with a 15-second timeout
+        const profile = await withTimeout(
+          actor.getCallerUserProfile(),
+          15000,
+          'Profile loading timed out after 15 seconds'
+        );
+        return profile;
       } catch (error: any) {
         const formattedError = formatError(error);
         // Only log non-auth errors to reduce noise during login transitions
@@ -76,8 +83,12 @@ export function useGetCallerUserProfile() {
     enabled: !!actor && !actorFetching && isAuthenticated,
     retry: (failureCount, error: any) => {
       const formattedError = formatError(error);
-      // Don't retry auth errors or during actor initialization
-      if (formattedError.category === 'auth' || formattedError.category === 'network') return false;
+      // Don't retry auth errors, timeouts, or during actor initialization
+      if (formattedError.category === 'auth' || 
+          formattedError.category === 'timeout' || 
+          formattedError.category === 'network') {
+        return false;
+      }
       return failureCount < 1;
     },
     staleTime: 30000, // Cache for 30 seconds to reduce refetch churn
@@ -88,6 +99,28 @@ export function useGetCallerUserProfile() {
     isLoading: (actorFetching || query.isLoading) && isAuthenticated,
     isFetched: !!actor && isAuthenticated && query.isFetched,
   };
+}
+
+export function useCreateUserProfile() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (profile: UserProfile) => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        return await actor.createUserProfile(profile);
+      } catch (error: any) {
+        const formattedError = formatError(error);
+        console.error('Error creating user profile:', formattedError);
+        throw new Error(formattedError.message);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['onboardingAnswers'] });
+    },
+  });
 }
 
 export function useSaveCallerUserProfile() {
@@ -107,6 +140,49 @@ export function useSaveCallerUserProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+export function useGetOnboardingAnswers() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const isAuthenticated = !!identity;
+
+  return useQuery<OnboardingAnswers | null>({
+    queryKey: ['onboardingAnswers'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        return await actor.getOnboardingAnswers();
+      } catch (error: any) {
+        const formattedError = formatError(error);
+        console.error('Error fetching onboarding answers:', formattedError);
+        throw new Error(formattedError.message);
+      }
+    },
+    enabled: !!actor && !actorFetching && isAuthenticated,
+    retry: false,
+  });
+}
+
+export function useSetOnboardingAnswers() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (answers: OnboardingAnswers) => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        return await actor.setOnboardingAnswers(answers);
+      } catch (error: any) {
+        const formattedError = formatError(error);
+        console.error('Error setting onboarding answers:', formattedError);
+        throw new Error(formattedError.message);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['onboardingAnswers'] });
     },
   });
 }

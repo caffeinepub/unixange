@@ -55,6 +55,11 @@ export const LostFoundItem = IDL.Record({
   'location' : IDL.Text,
   'images' : IDL.Vec(IDL.Vec(IDL.Nat8)),
 });
+export const OnboardingAnswers = IDL.Record({
+  'city' : IDL.Text,
+  'year' : IDL.Text,
+  'address' : IDL.Text,
+});
 export const RentalItem = IDL.Record({
   'id' : ItemId,
   'title' : IDL.Text,
@@ -163,6 +168,11 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getLostFoundItem' : IDL.Func([ItemId], [IDL.Opt(LostFoundItem)], ['query']),
   'getLostFoundItems' : IDL.Func([], [IDL.Vec(LostFoundItem)], ['query']),
+  'getOnboardingAnswers' : IDL.Func(
+      [],
+      [IDL.Opt(OnboardingAnswers)],
+      ['query'],
+    ),
   'getRentalItem' : IDL.Func([ItemId], [IDL.Opt(RentalItem)], ['query']),
   'getRentalItems' : IDL.Func([], [IDL.Vec(RentalItem)], ['query']),
   'getUserProfile' : IDL.Func([UserId], [IDL.Opt(UserProfile)], ['query']),
@@ -204,6 +214,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'setOnboardingAnswers' : IDL.Func([OnboardingAnswers], [], []),
   'toMinimalItemList' : IDL.Func([], [IDL.Vec(MinimalItem)], ['query']),
 });
 
@@ -256,6 +267,11 @@ export const idlFactory = ({ IDL }) => {
     'description' : IDL.Text,
     'location' : IDL.Text,
     'images' : IDL.Vec(IDL.Vec(IDL.Nat8)),
+  });
+  const OnboardingAnswers = IDL.Record({
+    'city' : IDL.Text,
+    'year' : IDL.Text,
+    'address' : IDL.Text,
   });
   const RentalItem = IDL.Record({
     'id' : ItemId,
@@ -369,6 +385,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getLostFoundItems' : IDL.Func([], [IDL.Vec(LostFoundItem)], ['query']),
+    'getOnboardingAnswers' : IDL.Func(
+        [],
+        [IDL.Opt(OnboardingAnswers)],
+        ['query'],
+      ),
     'getRentalItem' : IDL.Func([ItemId], [IDL.Opt(RentalItem)], ['query']),
     'getRentalItems' : IDL.Func([], [IDL.Vec(RentalItem)], ['query']),
     'getUserProfile' : IDL.Func([UserId], [IDL.Opt(UserProfile)], ['query']),
@@ -410,6 +431,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'setOnboardingAnswers' : IDL.Func([OnboardingAnswers], [], []),
     'toMinimalItemList' : IDL.Func([], [IDL.Vec(MinimalItem)], ['query']),
   });
 };

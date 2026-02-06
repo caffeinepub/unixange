@@ -44,6 +44,11 @@ export interface MinimalItem {
   'dailyPrice' : [] | [Rupee],
   'price' : [] | [Rupee],
 }
+export interface OnboardingAnswers {
+  'city' : string,
+  'year' : string,
+  'address' : string,
+}
 export interface RentalItem {
   'id' : ItemId,
   'title' : string,
@@ -140,6 +145,7 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getLostFoundItem' : ActorMethod<[ItemId], [] | [LostFoundItem]>,
   'getLostFoundItems' : ActorMethod<[], Array<LostFoundItem>>,
+  'getOnboardingAnswers' : ActorMethod<[], [] | [OnboardingAnswers]>,
   'getRentalItem' : ActorMethod<[ItemId], [] | [RentalItem]>,
   'getRentalItems' : ActorMethod<[], Array<RentalItem>>,
   'getUserProfile' : ActorMethod<[UserId], [] | [UserProfile]>,
@@ -166,6 +172,7 @@ export interface _SERVICE {
     undefined
   >,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'setOnboardingAnswers' : ActorMethod<[OnboardingAnswers], undefined>,
   'toMinimalItemList' : ActorMethod<[], Array<MinimalItem>>,
 }
 export declare const idlService: IDL.ServiceClass;

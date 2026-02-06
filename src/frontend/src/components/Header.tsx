@@ -7,13 +7,14 @@ import { useGetCallerUserProfile } from '@/hooks/useQueries';
 import { Search, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { setAuthIntent, clearAuthIntent } from '@/utils/authIntent';
+import ProfileAvatarMenu from '@/components/ProfileAvatarMenu';
 
 export default function Header() {
   const navigate = useNavigate();
   const routerState = useRouterState();
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
-  const { data: userProfile } = useGetCallerUserProfile();
+  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -62,9 +63,7 @@ export default function Header() {
   const handleLogout = async () => {
     await clear();
     clearAuthIntent();
-    // Clear all queries including profile
     queryClient.clear();
-    // Navigate to home after logout
     navigate({ to: '/' });
   };
 
@@ -109,22 +108,7 @@ export default function Header() {
           {/* Right side - Desktop */}
           <div className="hidden items-center gap-3 lg:flex">
             {isAuthenticated ? (
-              <Button
-                onClick={handleLogout}
-                disabled={disabled}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2 rounded-md px-4 font-medium transition-marketplace"
-              >
-                {userProfile && (
-                  <img 
-                    src="/assets/generated/profile-icon-transparent.dim_32x32.png" 
-                    alt="Profile" 
-                    className="h-5 w-5"
-                  />
-                )}
-                {userProfile?.name || 'Logout'}
-              </Button>
+              <ProfileAvatarMenu userProfile={userProfile} isLoading={profileLoading} />
             ) : (
               <>
                 <Button
@@ -164,28 +148,49 @@ export default function Header() {
         {mobileMenuOpen && (
           <div className="border-t border-border/60 py-4 lg:hidden">
             <div className="space-y-2">
-              {isAuthenticated && userProfile && (
-                <div className="mb-4 rounded-md border border-border bg-accent px-4 py-3 flex items-center gap-3">
-                  <img 
-                    src="/assets/generated/profile-icon-transparent.dim_32x32.png" 
-                    alt="Profile" 
-                    className="h-8 w-8"
-                  />
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{userProfile.name}</p>
-                    <p className="text-xs text-muted-foreground">{userProfile.university}</p>
-                  </div>
-                </div>
-              )}
               {isAuthenticated ? (
-                <Button
-                  onClick={handleLogout}
-                  disabled={disabled}
-                  variant="outline"
-                  className="w-full justify-start rounded-md font-medium"
-                >
-                  Logout
-                </Button>
+                <>
+                  {/* Mobile profile section */}
+                  <div className="mb-4 rounded-md border border-border bg-accent px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src="/assets/generated/profile-icon-transparent.dim_32x32.png" 
+                        alt="Profile" 
+                        className="h-10 w-10 rounded-full border-2 border-border"
+                      />
+                      <div className="flex-1 min-w-0">
+                        {profileLoading ? (
+                          <>
+                            <p className="text-sm font-semibold text-foreground">Loading...</p>
+                            <p className="text-xs text-muted-foreground truncate">Please wait</p>
+                          </>
+                        ) : userProfile ? (
+                          <>
+                            <p className="text-sm font-semibold text-foreground truncate">{userProfile.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{userProfile.email}</p>
+                            {userProfile.university && (
+                              <p className="text-xs text-muted-foreground truncate mt-0.5">{userProfile.university}</p>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm font-semibold text-foreground">Account</p>
+                            <p className="text-xs text-muted-foreground">Profile loading...</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {/* Mobile logout button */}
+                  <Button
+                    onClick={handleLogout}
+                    disabled={disabled}
+                    variant="outline"
+                    className="w-full justify-start rounded-md font-medium text-destructive hover:text-destructive"
+                  >
+                    Log out
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button

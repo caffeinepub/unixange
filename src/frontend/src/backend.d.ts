@@ -14,15 +14,6 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
-export interface MinimalItem {
-    id: ItemId;
-    title: string;
-    itemType: Variant_rent_lostFound_buySell;
-    image: Uint8Array;
-    dailyPrice?: Rupee;
-    price?: Rupee;
-}
-export type UserId = Principal;
 export interface LostFoundItem {
     id: ItemId;
     status: string;
@@ -45,7 +36,6 @@ export interface BuySellItem {
     condition: string;
     images: Array<Uint8Array>;
 }
-export type ItemId = bigint;
 export interface RentalItem {
     id: ItemId;
     title: string;
@@ -59,10 +49,25 @@ export interface RentalItem {
     images: Array<Uint8Array>;
 }
 export type Rupee = bigint;
+export type UserId = Principal;
+export type ItemId = bigint;
+export interface OnboardingAnswers {
+    city: string;
+    year: string;
+    address: string;
+}
 export interface UserProfile {
     name: string;
     email: string;
     university: string;
+}
+export interface MinimalItem {
+    id: ItemId;
+    title: string;
+    itemType: Variant_rent_lostFound_buySell;
+    image: Uint8Array;
+    dailyPrice?: Rupee;
+    price?: Rupee;
 }
 export enum UserRole {
     admin = "admin",
@@ -95,6 +100,7 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getLostFoundItem(itemId: ItemId): Promise<LostFoundItem | null>;
     getLostFoundItems(): Promise<Array<LostFoundItem>>;
+    getOnboardingAnswers(): Promise<OnboardingAnswers | null>;
     getRentalItem(itemId: ItemId): Promise<RentalItem | null>;
     getRentalItems(): Promise<Array<RentalItem>>;
     getUserProfile(user: UserId): Promise<UserProfile | null>;
@@ -104,5 +110,6 @@ export interface backendInterface {
     postFoundItem(title: string, description: string, location: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
     postLostItem(title: string, description: string, location: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    setOnboardingAnswers(answers: OnboardingAnswers): Promise<void>;
     toMinimalItemList(): Promise<Array<MinimalItem>>;
 }

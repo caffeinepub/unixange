@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the authenticated login + profile onboarding flow so users never get stuck on “Loading your profile...” and can always deterministically reach either the app or profile creation.
+**Goal:** Rebuild the app footer to match the uploaded screenshot’s 3-column layout and spacing while keeping the existing beige/black theme.
 
 **Planned changes:**
-- Update the post-auth flow to no longer depend on `authIntent` being present to resolve; use profile existence (`exists` vs `null`) to route users to the app or to profile creation.
-- Harden ProfileSetup gate state handling to ensure all authentication/profile states lead to a terminal UI (unauthenticated, loading, profile exists, no profile, invalid email domain) with no redirect loops.
-- Adjust React Query profile fetching and actor/identity initialization so profile calls run only when authenticated and an authenticated actor is ready, preventing transient “Unauthorized” errors from causing stuck loading or error loops.
-- Ensure logout reliably clears profile/auth state and returns users to the unauthenticated welcome screen.
+- Update the existing footer component to a 3-column desktop layout (brand + short description, “Quick Links” list, “About” heading + short paragraph) that stacks cleanly on mobile.
+- Implement “Quick Links” items (Buy, Sell, Rent, Lost & Found) routing to `/buy`, `/sell`, `/rent`, `/lost-found`.
+- Replace the footer bottom area with a single centered copyright line: “© {currentYear} UniXange. All Rights Reserved.” and remove the “Built with … caffeine.ai” line.
+- Ensure the updated footer remains integrated via the global layout and the frontend builds successfully without touching backend code or immutable frontend files.
 
-**User-visible outcome:** After Internet Identity login (including after refresh), users either enter the app immediately if a profile exists, or are shown a working profile creation flow if not. Users with an invalid email domain see an access-denied screen with a working logout, and no flow gets stuck in loading or loops.
+**User-visible outcome:** The footer matches the screenshot structure and spacing, retains the beige/black styling, has working quick links, and shows only the simplified UniXange copyright line.

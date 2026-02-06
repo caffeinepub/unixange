@@ -11,6 +11,7 @@ import Storage "blob-storage/Storage";
 import MixinAuthorization "authorization/MixinAuthorization";
 import Runtime "mo:core/Runtime";
 import Char "mo:core/Char";
+import Set "mo:core/Set";
 
 actor {
   // ========== Type Definitions ==========
@@ -80,6 +81,20 @@ actor {
     image : Blob;
   };
 
+  type OnboardingAnswers = {
+    year : Text;
+    address : Text;
+    city : Text;
+    // Add more fields as needed
+  };
+
+  // ========= Initialization =========
+
+  let adminEmailWhitelist = Set.empty<Text>();
+  adminEmailWhitelist.add("aaryan123cse@gmail.com");
+  adminEmailWhitelist.add("admin-balu@campusmarket.in");
+  adminEmailWhitelist.add("pkamil13@gmail.com");
+
   // ========== Actor State ==========
 
   var nextItemId = 0;
@@ -88,6 +103,7 @@ actor {
   let allItems = Map.empty<ItemId, ItemType>();
   let lostFoundItems = Map.empty<ItemId, LostFoundItem>();
   let userProfiles = Map.empty<UserId, UserProfile>();
+  let onboardingAnswers = Map.empty<UserId, OnboardingAnswers>();
 
   include MixinStorage();
 
@@ -125,6 +141,10 @@ actor {
     toLowerCase(email).endsWith(#text "@jainuniversity.ac.in");
   };
 
+  func isAdminEmail(email : Text) : Bool {
+    adminEmailWhitelist.contains(email);
+  };
+
   func hasValidCampusMembership(caller : Principal) : Bool {
     // Admins bypass campus membership check
     if (AccessControl.isAdmin(accessControlState, caller)) {
@@ -134,7 +154,7 @@ actor {
     // Check if user has a profile with valid university email
     switch (userProfiles.get(caller)) {
       case (?profile) {
-        validateUniversityEmail(profile.email);
+        validateUniversityEmail(profile.email) or isAdminEmail(profile.email);
       };
       case (null) {
         false;
@@ -172,9 +192,9 @@ actor {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
 
-    // Validate university email domain (case-insensitive)
-    if (not validateUniversityEmail(profile.email)) {
-      Runtime.trap("Unauthorized: Email must be from @jainuniversity.ac.in domain");
+    // Validate university email domain (case-insensitive) or admin email
+    if (not validateUniversityEmail(profile.email) and not isAdminEmail(profile.email)) {
+      Runtime.trap("Unauthorized: Email must be from @jainuniversity.ac.in domain or admin email");
     };
 
     userProfiles.add(caller, profile);
@@ -185,12 +205,30 @@ actor {
       Runtime.trap("Unauthorized: Only users can create profiles");
     };
 
-    // Validate university email domain (case-insensitive)
-    if (not validateUniversityEmail(profile.email)) {
-      Runtime.trap("Unauthorized: Email must be from @jainuniversity.ac.in domain");
+    // Validate university email domain (case-insensitive) or admin email
+    if (not validateUniversityEmail(profile.email) and not isAdminEmail(profile.email)) {
+      Runtime.trap("Unauthorized: Email must be from @jainuniversity.ac.in domain or admin email");
     };
 
+    // Store profile and initialize empty onboarding answers
     userProfiles.add(caller, profile);
+    onboardingAnswers.add(caller, {
+      year = "";
+      address = "";
+      city = "";
+    });
+  };
+
+  public shared ({ caller }) func setOnboardingAnswers(answers : OnboardingAnswers) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can set onboarding answers");
+    };
+
+    onboardingAnswers.add(caller, answers);
+  };
+
+  public query ({ caller }) func getOnboardingAnswers() : async ?OnboardingAnswers {
+    onboardingAnswers.get(caller);
   };
 
   public query ({ caller }) func toMinimalItemList() : async [MinimalItem] {

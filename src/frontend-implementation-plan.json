@@ -1,70 +1,45 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix auth/profile gate loading dead-ends and stabilize onboarding",
+  "title": "Footer rebuild to match screenshot layout (beige/black theme)",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Make the authenticated flow deterministically resolve even when authIntent is missing, avoiding infinite \"Loading your profile...\" and providing a working profile creation path when no profile exists.",
+      "summary": "Rebuild Footer to match screenshot: 3 columns (brand/description, Quick Links, About paragraph) plus a single centered copyright line, keeping beige/black theme tokens.",
       "acceptanceCriteria": [
-        "After successful Internet Identity authentication, users are not stuck on a perpetual loading screen.",
-        "If the user already has a saved profile, the app renders the normal routes (Homepage/Buy/Sell/Rent/Lost & Found) without requiring `authIntent` to be present.",
-        "If the user does not have a saved profile, the user is presented with a working profile creation UI and can complete it successfully.",
-        "No redirect loop occurs between login UI and the ProfileSetup gate."
+        "Footer uses a 3-column layout on desktop and stacks cleanly on mobile (brand/description, quick links, about).",
+        "Middle column contains link items: Buy, Sell, Rent, Lost & Found and routes to /buy, /sell, /rent, /lost-found.",
+        "Right column shows an About paragraph (not just a single 'About Us' link) using the project name (UniXange) in the text.",
+        "Bottom area shows only: “© {currentYear} UniXange. All Rights Reserved.” centered (or visually matching the screenshot), and removes the “Built with … caffeine.ai” line.",
+        "Overall colors remain consistent with the app’s beige/black theme (no new color scheme introduced), using existing Tailwind tokens (e.g., bg-background/bg-card, text-foreground, muted-foreground)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProfileSetup.tsx",
+          "path": "frontend/src/components/Footer.tsx",
           "operation": "modify",
-          "description": "Remove the hard dependency on `authIntent === null` from the loading gate; resolve based on authenticated state plus profile query result (profile exists => render children; profile null => show a deterministic profile creation path equivalent to signup). Keep user-facing text in English. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/utils/authIntent.ts",
-          "operation": "modify",
-          "description": "Harden auth intent persistence behavior to be resilient when storage is unavailable/cleared (ensure getters return a safe value and callers can treat missing intent as 'unknown' without blocking UI). Verify the component's usage instructions before implementing."
+          "description": "Replace current 4-section footer with a 3-column layout matching the screenshot: left brand name + short description, middle 'Quick Links' list linking to /buy, /sell, /rent, /lost-found, right 'About' heading + paragraph mentioning UniXange; update spacing/typography to visually match screenshot; remove the Heart icon import and the caffeine.ai credit line; ensure bottom bar contains only the centered “© {currentYear} UniXange. All Rights Reserved.” line and uses existing theme tokens (bg-card/bg-background, text-foreground/muted-foreground) without introducing new colors."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Harden ProfileSetup gating to cover all auth/profile/email-domain states with terminal UI outcomes (no dead-ends), and ensure profile existence (null vs non-null) can drive the gate even when auth intent is missing.",
+      "summary": "Keep footer integrated in the global layout and ensure build succeeds without changing routing/auth logic or immutable files.",
       "acceptanceCriteria": [
-        "There is no state where the gate requires `authIntent === null` to resolve before it can proceed if the profile query has already returned.",
-        "When authenticated and the profile fetch returns `null`, the user can proceed to create a profile (and cannot access the app until profile creation succeeds).",
-        "When authenticated and the profile fetch returns a valid profile, the gate renders children immediately.",
-        "When authenticated and the profile exists but email is not @jainuniversity.ac.in, an access denied screen is shown with a working logout action."
+        "No changes are made to backend canister code.",
+        "No changes are made to immutable hook files under frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
+        "Footer renders on all pages as before (via App layout), with no runtime errors or broken links.",
+        "Project compiles without TypeScript or lint errors related to the footer changes."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProfileSetup.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Refactor gate state handling into an explicit matrix: unauthenticated (welcome), authenticated+profile loading (loading), authenticated+profile valid (render children), authenticated+profile invalid domain (access denied + logout), authenticated+no profile (render a non-blocking profile creation UI). Ensure no UI path depends on `authIntent` to become non-null to proceed, and provide a clear 'create profile' action when intent is missing or was 'login' but profile is null. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Stabilize React Query profile fetching and actor/identity initialization so profile queries only run when an authenticated actor is ready and transient transitions don’t cause unauthorized/error loops or stuck loading.",
-      "acceptanceCriteria": [
-        "During login transitions, `getCallerUserProfile` does not spam errors and does not prevent the gate from resolving once the actor/identity is ready.",
-        "Refreshing the page while already authenticated and having a profile lands in the app successfully (no forced profile setup, no stuck loading).",
-        "Logging out clears profile state and returns to the unauthenticated welcome screen reliably."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Adjust `useGetCallerUserProfile` to only execute when the authenticated actor is ready (per the authorization component guidance), and handle transient unauthorized/initialization failures during login transitions without trapping the UI (e.g., avoid noisy retries/error loops and allow the gate to resolve once dependencies stabilize). Verify the component's usage instructions before implementing."
+          "description": "Verify Footer remains rendered in the global Layout on all routes (keep it after <main>), with no changes to routing/auth logic; limit changes to non-functional adjustments only (if any) needed to preserve global integration after Footer refactor."
         },
         {
-          "path": "frontend/src/hooks/useActor.ts",
+          "path": "frontend/src/components/Footer.tsx",
           "operation": "modify",
-          "description": "Reduce query churn during identity changes by avoiding aggressive refetch loops that can race actor initialization; ensure dependent queries are invalidated in a way that allows a single clean refetch once the authenticated actor is ready. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Ensure logout reliably clears cached profile/query state and returns the UI to the unauthenticated welcome experience without stale authenticated/profile UI lingering during transitions. Verify the component's usage instructions before implementing."
+          "description": "Double-check Footer changes do not introduce TypeScript errors (e.g., unused imports), and that TanStack Router <Link> usage is correct for /buy, /sell, /rent, /lost-found; ensure no references to immutable hook/UI files are added or modified."
         }
       ]
     }

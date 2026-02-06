@@ -1,5 +1,5 @@
 import { useState, ReactNode, useEffect } from 'react';
-import { useGetCallerUserProfile, useSaveCallerUserProfile } from '@/hooks/useQueries';
+import { useGetCallerUserProfile, useCreateUserProfile, useGetOnboardingAnswers, useSetOnboardingAnswers } from '@/hooks/useQueries';
 import { useInternetIdentity } from '@/hooks/useInternetIdentity';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -7,55 +7,59 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { isValidJainUniversityEmail, getUniversityEmailError } from '@/utils/universityEmail';
-import { AlertCircle, XCircle } from 'lucide-react';
-import { getAuthIntent, clearAuthIntent } from '@/utils/authIntent';
+import { AlertCircle } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import AuthResolutionErrorScreen from './AuthResolutionErrorScreen';
 
 interface ProfileSetupProps {
   children: ReactNode;
 }
 
+type OnboardingStep = 'profile' | 'questions';
+
 export default function ProfileSetup({ children }: ProfileSetupProps) {
   const { identity, clear } = useInternetIdentity();
   const queryClient = useQueryClient();
   const isAuthenticated = !!identity;
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-  const saveProfile = useSaveCallerUserProfile();
+  
+  const { 
+    data: userProfile, 
+    isLoading: profileLoading, 
+    isFetched: profileFetched,
+    error: profileError,
+    refetch: refetchProfile
+  } = useGetCallerUserProfile();
+  
+  const { data: onboardingAnswers, isFetched: onboardingFetched } = useGetOnboardingAnswers();
+  const createProfile = useCreateUserProfile();
+  const setOnboardingAnswers = useSetOnboardingAnswers();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [university, setUniversity] = useState('Jain University');
   const [emailError, setEmailError] = useState('');
-  const [authIntent, setAuthIntentState] = useState<'login' | 'signup' | null>(null);
+  
+  const [year, setYear] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  
+  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('profile');
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Fetch auth intent once after authentication
-  useEffect(() => {
-    if (isAuthenticated && authIntent === null) {
-      const intent = getAuthIntent();
-      setAuthIntentState(intent);
-    }
-  }, [isAuthenticated, authIntent]);
-
-  // Clear intent on logout
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setAuthIntentState(null);
-      clearAuthIntent();
-    }
-  }, [isAuthenticated]);
+  // Detect timeout errors
+  const isTimeout = profileError?.message?.toLowerCase().includes('timeout') || 
+                    profileError?.message?.toLowerCase().includes('timed out');
 
   const handleEmailChange = (value: string) => {
     setEmail(value);
-    // Clear error when user starts typing
     if (emailError) {
       setEmailError('');
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate all fields
     if (!name.trim()) {
       toast.error('Please enter your full name');
       return;
@@ -71,7 +75,6 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
       return;
     }
 
-    // Validate university email domain
     if (!isValidJainUniversityEmail(email)) {
       const error = getUniversityEmailError(email);
       setEmailError(error);
@@ -80,31 +83,67 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
     }
 
     try {
-      await saveProfile.mutateAsync({ 
+      await createProfile.mutateAsync({ 
         name: name.trim(), 
         email: email.trim().toLowerCase(), 
         university: university.trim() 
       });
-      toast.success('Profile created successfully! Welcome to UniXange.');
-      clearAuthIntent();
-      setAuthIntentState(null);
+      toast.success('Profile created successfully!');
+      setOnboardingStep('questions');
     } catch (error: any) {
-      console.error('Error saving profile:', error);
+      console.error('Error creating profile:', error);
       const errorMessage = error?.message || 'Failed to create profile';
       toast.error(errorMessage);
       
-      // If backend rejects the email, show inline error too
-      if (errorMessage.includes('jainuniversity.ac.in')) {
-        setEmailError('Email must be from @jainuniversity.ac.in domain');
+      if (errorMessage.toLowerCase().includes('jainuniversity.ac.in') || 
+          errorMessage.toLowerCase().includes('unauthorized')) {
+        setEmailError('Email must be from @jainuniversity.ac.in domain or be an approved admin email');
       }
+    }
+  };
+
+  const handleQuestionsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!year.trim()) {
+      toast.error('Please enter your year of study');
+      return;
+    }
+
+    if (!city.trim()) {
+      toast.error('Please enter your city');
+      return;
+    }
+
+    if (!address.trim()) {
+      toast.error('Please enter your address');
+      return;
+    }
+
+    try {
+      await setOnboardingAnswers.mutateAsync({
+        year: year.trim(),
+        city: city.trim(),
+        address: address.trim(),
+      });
+      toast.success('Welcome to UniXange! Your profile is complete.');
+      setShowOnboarding(false);
+      // Invalidate queries to refresh the app state
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['onboardingAnswers'] });
+    } catch (error: any) {
+      console.error('Error saving onboarding answers:', error);
+      toast.error(error?.message || 'Failed to save onboarding information');
     }
   };
 
   const handleLogout = async () => {
     await clear();
-    clearAuthIntent();
-    setAuthIntentState(null);
     queryClient.clear();
+  };
+
+  const handleRetry = () => {
+    refetchProfile();
   };
 
   // Not authenticated - show welcome screen
@@ -121,9 +160,31 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
     );
   }
 
-  // Authenticated but profile check not complete yet - show loading
-  // Only block on profile loading, not on missing authIntent
-  if (profileLoading || !isFetched) {
+  // Show timeout error screen
+  if (isTimeout && profileFetched) {
+    return (
+      <AuthResolutionErrorScreen
+        variant="timeout"
+        onRetry={handleRetry}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Show general error screen for other errors
+  if (profileError && profileFetched && !isTimeout) {
+    return (
+      <AuthResolutionErrorScreen
+        variant="error"
+        errorMessage={profileError.message}
+        onRetry={handleRetry}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Authenticated but profile check not complete yet - show loading (max 15s due to timeout)
+  if (profileLoading || !profileFetched) {
     return (
       <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4">
         <div className="text-center">
@@ -138,123 +199,168 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
   if (userProfile) {
     if (!isValidJainUniversityEmail(userProfile.email)) {
       return (
+        <AuthResolutionErrorScreen
+          variant="access-denied"
+          email={userProfile.email}
+          onLogout={handleLogout}
+        />
+      );
+    }
+
+    // Check if onboarding questions are complete
+    if (onboardingFetched && onboardingAnswers) {
+      const hasCompletedOnboarding = 
+        onboardingAnswers.year.trim() !== '' &&
+        onboardingAnswers.city.trim() !== '' &&
+        onboardingAnswers.address.trim() !== '';
+      
+      if (!hasCompletedOnboarding) {
+        // Show onboarding questions if not completed
+        if (!showOnboarding) {
+          setShowOnboarding(true);
+          setOnboardingStep('questions');
+        }
+      } else {
+        // Valid profile with completed onboarding - render app
+        return <>{children}</>;
+      }
+    } else if (onboardingFetched && !onboardingAnswers) {
+      // No onboarding answers exist, show questions
+      if (!showOnboarding) {
+        setShowOnboarding(true);
+        setOnboardingStep('questions');
+      }
+    } else {
+      // Still loading onboarding answers
+      return (
         <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4">
-          <div className="max-w-md rounded-lg border-2 border-destructive bg-card p-8 text-center shadow-lg">
-            <XCircle className="mx-auto h-16 w-16 text-destructive" />
-            <h2 className="mt-4 text-2xl font-bold text-foreground">Access Denied</h2>
-            <p className="mt-4 text-base text-foreground/80">
-              Your profile email <span className="font-semibold">{userProfile.email}</span> is not a valid Jain University email address.
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Only <span className="font-semibold">@jainuniversity.ac.in</span> email addresses are allowed to access UniXange.
-            </p>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="mt-6 w-full"
-            >
-              Logout
-            </Button>
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+            <p className="mt-4 text-lg text-foreground/70">Loading your profile...</p>
           </div>
         </div>
       );
     }
-
-    // Valid profile - render app
-    return <>{children}</>;
   }
 
-  // No profile exists
-  // If intent is 'login', block access and show error
-  if (authIntent === 'login') {
-    return (
-      <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4">
-        <div className="max-w-md rounded-lg border-2 border-destructive bg-card p-8 text-center shadow-lg">
-          <AlertCircle className="mx-auto h-16 w-16 text-destructive" />
-          <h2 className="mt-4 text-2xl font-bold text-foreground">No Profile Found</h2>
-          <p className="mt-4 text-base text-foreground/80">
-            You don't have a profile yet. Please use <span className="font-semibold">Sign up</span> to create your account.
-          </p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            If you already have an account, make sure you're using the correct Internet Identity.
-          </p>
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="mt-6 w-full"
-          >
-            Logout and Sign up
-          </Button>
-        </div>
-      </div>
-    );
+  // No profile exists - automatically start profile creation
+  if (!userProfile && profileFetched) {
+    if (!showOnboarding) {
+      setShowOnboarding(true);
+      setOnboardingStep('profile');
+    }
   }
 
-  // Intent is 'signup' or missing - show profile creation modal
-  // If intent is missing, treat as signup (allow profile creation)
-  const showProfileSetup = authIntent === 'signup' || authIntent === null;
-
+  // Render onboarding dialog
   return (
     <>
-      <Dialog open={showProfileSetup}>
+      <Dialog open={showOnboarding} onOpenChange={() => {}}>
         <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
-          <DialogHeader>
-            <DialogTitle>Complete Your Profile</DialogTitle>
-            <DialogDescription>
-              Please provide your Jain University information to get started
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="John Doe"
-                required
-                autoComplete="name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">University Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => handleEmailChange(e.target.value)}
-                placeholder="john.doe@jainuniversity.ac.in"
-                required
-                autoComplete="email"
-                className={emailError ? 'border-destructive focus-visible:ring-destructive' : ''}
-              />
-              {emailError && (
-                <div className="flex items-center gap-2 text-sm text-destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <span>{emailError}</span>
+          {onboardingStep === 'profile' ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Complete Your Profile</DialogTitle>
+                <DialogDescription>
+                  Please provide your Jain University information to get started
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleProfileSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="John Doe"
+                    required
+                    autoComplete="name"
+                  />
                 </div>
-              )}
-              <p className="text-xs text-muted-foreground">
-                Must be a valid @jainuniversity.ac.in email address
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="university">University</Label>
-              <Input
-                id="university"
-                value={university}
-                onChange={(e) => setUniversity(e.target.value)}
-                placeholder="Jain University"
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={saveProfile.isPending}>
-              {saveProfile.isPending ? 'Creating Profile...' : 'Create Profile'}
-            </Button>
-          </form>
+                <div className="space-y-2">
+                  <Label htmlFor="email">University Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    placeholder="john.doe@jainuniversity.ac.in"
+                    required
+                    autoComplete="email"
+                    className={emailError ? 'border-destructive focus-visible:ring-destructive' : ''}
+                  />
+                  {emailError && (
+                    <div className="flex items-center gap-2 text-sm text-destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>{emailError}</span>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Must be a valid @jainuniversity.ac.in email address
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="university">University</Label>
+                  <Input
+                    id="university"
+                    value={university}
+                    onChange={(e) => setUniversity(e.target.value)}
+                    placeholder="Jain University"
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={createProfile.isPending}>
+                  {createProfile.isPending ? 'Creating Profile...' : 'Continue'}
+                </Button>
+              </form>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Tell Us More About You</DialogTitle>
+                <DialogDescription>
+                  Help us personalize your experience with a few more details
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleQuestionsSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="year">Year of Study</Label>
+                  <Input
+                    id="year"
+                    value={year}
+                    onChange={(e) => setYear(e.target.value)}
+                    placeholder="e.g., 2nd Year, Final Year"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="e.g., Bangalore"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Your current address"
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={setOnboardingAnswers.isPending}>
+                  {setOnboardingAnswers.isPending ? 'Saving...' : 'Complete Setup'}
+                </Button>
+              </form>
+            </>
+          )}
         </DialogContent>
       </Dialog>
-      {!showProfileSetup && children}
+      {!showOnboarding && children}
     </>
   );
 }

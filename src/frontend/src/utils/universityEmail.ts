@@ -1,5 +1,8 @@
+import { isAllowlistedAdminEmail } from './adminEmailAllowlist';
+
 /**
  * Validates that an email address ends with @jainuniversity.ac.in
+ * OR is in the admin email allowlist
  * Case-insensitive validation
  */
 export function isValidJainUniversityEmail(email: string): boolean {
@@ -8,7 +11,14 @@ export function isValidJainUniversityEmail(email: string): boolean {
   }
   
   const trimmedEmail = email.trim().toLowerCase();
-  return trimmedEmail.endsWith('@jainuniversity.ac.in');
+  
+  // Check if it's a valid university email
+  if (trimmedEmail.endsWith('@jainuniversity.ac.in')) {
+    return true;
+  }
+  
+  // Check if it's an allowlisted admin email
+  return isAllowlistedAdminEmail(trimmedEmail);
 }
 
 /**
@@ -20,7 +30,7 @@ export function getUniversityEmailError(email: string): string {
   }
   
   if (!isValidJainUniversityEmail(email)) {
-    return 'Email must be from @jainuniversity.ac.in domain';
+    return 'Email must be from @jainuniversity.ac.in domain or be an approved admin email';
   }
   
   return '';
