@@ -1,39 +1,51 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Build and deploy an updated app footer to match a provided screenshot layout, while keeping the app’s beige/black theme and using the project’s name/text.",
-  "architectural_notes": [],
+  "summary": "New project",
+  "architectural_notes": [
+    "Backend call to canister method _initializeAccessControlWithSecret can fail if target IC canister is stopped (IC0508 non_replicated_rejection)."
+  ],
   "known_issues": [
-    "Build/deploy failed with error: \"app creation didn't work out\" when generating the new footer; user requested retry."
+    "Console error IC0508: Canister acg2y-eiaaa-aaaab-aan7a-cai is stopped, causing initialization/access control setup to fail and UI to show generic 'Something went wrong'.",
+    "Warning: createActor called with both agent and agentOptions; agentOptions ignored."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-rebuild-the-existing-footer-component-to-match-the-structure-and-spacing-of-the-uploaded-screenshot-three-main-columns-left-brand-name-short-description-middle-quick-links-list-right-about-heading-short-paragraph-followed-by-a-single-bottom-copyright-line",
-      "title": "Rebuild the existing footer component to match the structure and spacing of the uploaded screenshot: three main columns (left: brand name + short description; middle: “Quick Links” list; right: “About” heading + short paragraph), followed by a single bottom copyright line.",
+      "id": "feature-detect-the-specific-internet-computer-rejection-case-where-the-backend-canister-is-stopped-e-g-reject-message-contains-is-stopped-error-code-ic0508-during-authenticated-actor-initialization-including-initializeaccesscontrolwithsecret-and-surface-a-clear-user-friendly-error-message-in-the-ui-instead-of-the-generic-something-went-wrong",
+      "title": "Detect the specific Internet Computer rejection case where the backend canister is stopped (e.g., reject_message contains \"is stopped\" / error_code \"IC0508\") during authenticated actor initialization (including `_initializeAccessControlWithSecret`) and surface a clear, user-friendly error message in the UI instead of the generic \"Something Went Wrong\".",
       "reqIds": [
-        "REQ-1"
+        "REQ-5"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-the-updated-footer-is-integrated-in-the-global-layout-without-changing-routing-or-authentication-logic-and-that-the-app-builds-successfully-after-the-previous-failed-build-attempt",
-      "title": "Ensure the updated footer is integrated in the global layout without changing routing or authentication logic, and that the app builds successfully after the previous failed build attempt.",
+      "id": "feature-update-error-sanitization-formatting-so-that-stopped-canister-errors-are-categorized-and-converted-into-stable-english-user-facing-text-while-still-logging-the-raw-error-to-the-console-for-debugging",
+      "title": "Update error sanitization / formatting so that stopped-canister errors are categorized and converted into stable English user-facing text (while still logging the raw error to the console for debugging).",
       "reqIds": [
-        "REQ-2"
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-eliminate-the-runtime-warning-detected-both-agent-and-agentoptions-passed-to-createactor-ignoring-agentoptions-and-proceeding-with-the-provided-agent-by-ensuring-actor-creation-only-passes-one-of-agent-or-agentoptions-not-both-when-calling-createactorwithconfig",
+      "title": "Eliminate the runtime warning \"Detected both agent and agentOptions passed to createActor. Ignoring agentOptions and proceeding with the provided agent.\" by ensuring actor creation only passes one of `agent` or `agentOptions` (not both) when calling `createActorWithConfig`.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-prevent-duplicated-access-control-initialization-calls-during-app-startup-by-consolidating-authenticated-actor-initialization-behind-the-guarded-path-so-initializeaccesscontrolwithsecret-is-not-triggered-redundantly-by-multiple-actor-hooks",
+      "title": "Prevent duplicated access-control initialization calls during app startup by consolidating authenticated actor initialization behind the guarded path (so `_initializeAccessControlWithSecret` is not triggered redundantly by multiple actor hooks).",
+      "reqIds": [
+        "REQ-8"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Rebuild footer to match screenshot layout (three-column structure), keep beige/black theme, and replace screenshot text with the project’s name/text.",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Rebuild footer to match uploaded screenshot layout (beige/black theme)",
+  "new_feature_requests": [],
+  "projectName": "Fix profile load failure when backend canister is stopped and remove createActor agentOptions warning",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

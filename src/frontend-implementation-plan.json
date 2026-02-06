@@ -1,45 +1,111 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Footer rebuild to match screenshot layout (beige/black theme)",
+  "title": "Harden actor initialization against stopped-canister failures and remove createActor warning",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Rebuild Footer to match screenshot: 3 columns (brand/description, Quick Links, About paragraph) plus a single centered copyright line, keeping beige/black theme tokens.",
+      "id": "REQ-5",
+      "summary": "Detect stopped-canister IC rejection during authenticated actor initialization and show a clear UI error that includes the canister ID, while keeping Retry/Logout actions.",
       "acceptanceCriteria": [
-        "Footer uses a 3-column layout on desktop and stacks cleanly on mobile (brand/description, quick links, about).",
-        "Middle column contains link items: Buy, Sell, Rent, Lost & Found and routes to /buy, /sell, /rent, /lost-found.",
-        "Right column shows an About paragraph (not just a single 'About Us' link) using the project name (UniXange) in the text.",
-        "Bottom area shows only: “© {currentYear} UniXange. All Rights Reserved.” centered (or visually matching the screenshot), and removes the “Built with … caffeine.ai” line.",
-        "Overall colors remain consistent with the app’s beige/black theme (no new color scheme introduced), using existing Tailwind tokens (e.g., bg-background/bg-card, text-foreground, muted-foreground)."
+        "When the actor init flow fails with an IC rejection indicating the canister is stopped, the rendered error screen message explicitly indicates the backend is currently unavailable because the canister is stopped.",
+        "The error screen includes the canister ID from the error payload (e.g., \"acg2y-eiaaa-aaaab-aan7a-cai\") in the displayed message (or a clearly labeled details section).",
+        "The existing Retry and Logout actions remain available (Retry uses the existing in-app retry behavior in ProfileSetup)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/Footer.tsx",
+          "path": "frontend/src/utils/icRejectionErrors.ts",
+          "operation": "create",
+          "description": "Add frontend-only parsing helpers to detect the stopped-canister rejection case (e.g., error_code IC0508 / reject_message contains \"is stopped\") and extract a canister ID when present."
+        },
+        {
+          "path": "frontend/src/utils/sanitizeErrorMessage.ts",
           "operation": "modify",
-          "description": "Replace current 4-section footer with a 3-column layout matching the screenshot: left brand name + short description, middle 'Quick Links' list linking to /buy, /sell, /rent, /lost-found, right 'About' heading + paragraph mentioning UniXange; update spacing/typography to visually match screenshot; remove the Heart icon import and the caffeine.ai credit line; ensure bottom bar contains only the centered “© {currentYear} UniXange. All Rights Reserved.” line and uses existing theme tokens (bg-card/bg-background, text-foreground/muted-foreground) without introducing new colors."
+          "description": "Use the new stopped-canister detection to return a stable, user-friendly message that explicitly says the backend canister is stopped and includes the extracted canister ID when available."
+        },
+        {
+          "path": "frontend/src/hooks/useActorInitGuard.ts",
+          "operation": "modify",
+          "description": "When authenticated actor initialization fails (including _initializeAccessControlWithSecret), keep logging the raw error to the console for debugging, and ensure the surfaced error message leverages the updated sanitization so ProfileSetup shows the stopped-canister-specific text."
+        },
+        {
+          "path": "frontend/src/components/ProfileSetup.tsx",
+          "operation": "modify",
+          "description": "Ensure the actor-init error screen and profile-load error screen display the stopped-canister-friendly message produced by sanitizeErrorMessage (so users see a clear backend-stopped message with canister ID), while keeping the existing Retry and Logout actions wired to the current in-app retry behavior."
+        },
+        {
+          "path": "frontend/src/components/AuthResolutionErrorScreen.tsx",
+          "operation": "modify",
+          "description": "Adjust the generic error rendering (variant=\"error\") to better accommodate longer, deterministic messages (including the canister ID details) without changing shadcn/ui components under frontend/src/components/ui."
         }
       ]
     },
     {
-      "id": "REQ-2",
-      "summary": "Keep footer integrated in the global layout and ensure build succeeds without changing routing/auth logic or immutable files.",
+      "id": "REQ-6",
+      "summary": "Improve error sanitization/formatting so stopped-canister errors map to deterministic English text while raw errors remain console-logged.",
       "acceptanceCriteria": [
-        "No changes are made to backend canister code.",
-        "No changes are made to immutable hook files under frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
-        "Footer renders on all pages as before (via App layout), with no runtime errors or broken links.",
-        "Project compiles without TypeScript or lint errors related to the footer changes."
+        "A stopped-canister error is mapped to a deterministic, readable message (not a raw CBOR/agent payload) suitable for `AuthResolutionErrorScreen`.",
+        "Raw error details continue to be logged to the browser console to aid debugging without being shown verbatim in the UI."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/utils/sanitizeErrorMessage.ts",
           "operation": "modify",
-          "description": "Verify Footer remains rendered in the global Layout on all routes (keep it after <main>), with no changes to routing/auth logic; limit changes to non-functional adjustments only (if any) needed to preserve global integration after Footer refactor."
+          "description": "Extend sanitization rules to categorize stopped-canister rejections and return stable English user-facing text; avoid leaking raw agent/CBOR payload strings into the UI."
         },
         {
-          "path": "frontend/src/components/Footer.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Double-check Footer changes do not introduce TypeScript errors (e.g., unused imports), and that TanStack Router <Link> usage is correct for /buy, /sell, /rent, /lost-found; ensure no references to immutable hook/UI files are added or modified."
+          "description": "Update query error logging to continue logging the raw error object to the console (not only formatted summaries) while keeping user-facing thrown messages deterministic and suitable for UI display, including stopped-canister mapping."
+        },
+        {
+          "path": "frontend/src/utils/icRejectionErrors.ts",
+          "operation": "modify",
+          "description": "Add any additional normalization helpers needed by both sanitizeErrorMessage and query formatting (e.g., robust canister ID extraction from nested error shapes) to keep message mapping deterministic."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Remove the createActor runtime warning by ensuring actor creation passes only one of agent or agentOptions.",
+      "acceptanceCriteria": [
+        "The warning about passing both `agent` and `agentOptions` no longer appears in the browser console during login/profile load.",
+        "Authenticated and anonymous actor creation continue to work as before (no regressions in profile loading flow aside from improved error handling)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/config.ts",
+          "operation": "modify",
+          "description": "Update createActorWithConfig so it never forwards both an explicit agent and agentOptions into actor creation at the same time; ensure authenticated and anonymous creation paths each supply only one of the two to prevent the runtime warning."
+        },
+        {
+          "path": "frontend/src/hooks/useActorInitGuard.ts",
+          "operation": "modify",
+          "description": "Align guarded actor initialization calls with the updated createActorWithConfig behavior (ensuring the guarded path does not accidentally trigger the agent+agentOptions warning)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Consolidate authenticated initialization behind the guarded path to prevent duplicated access-control initialization calls on startup.",
+      "acceptanceCriteria": [
+        "On a normal authenticated load, `_initializeAccessControlWithSecret` is invoked at most once per identity/session initialization flow (unless the user explicitly retries).",
+        "Retry from the error screen re-runs actor initialization via the existing in-app retry mechanism and does not require a full page reload."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Stop using the unguarded useActor hook for authenticated queries/mutations and instead source the actor from useActorInitGuard (so authenticated startup and access-control initialization are centralized and not duplicated)."
+        },
+        {
+          "path": "frontend/src/components/ProfileSetup.tsx",
+          "operation": "modify",
+          "description": "Ensure the Retry action continues to invoke the guarded in-app retry mechanism (actorGuard.retry) and that profile refetches rely on the guarded actor so access-control initialization is not redundantly re-triggered by multiple hooks."
+        },
+        {
+          "path": "frontend/src/hooks/useActorInitGuard.ts",
+          "operation": "modify",
+          "description": "Add lightweight protection against accidental duplicate initialization work within the guarded flow (e.g., ensure the guard remains the single source for authenticated actor readiness used by the rest of the app)."
         }
       ]
     }

@@ -10,6 +10,9 @@ import { isValidJainUniversityEmail, getUniversityEmailError } from '@/utils/uni
 import { AlertCircle } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import AuthResolutionErrorScreen from './AuthResolutionErrorScreen';
+import { useActorInitGuard } from '@/hooks/useActorInitGuard';
+import { isActorInitTimeout } from '@/utils/actorInitErrors';
+import { sanitizeErrorMessage } from '@/utils/sanitizeErrorMessage';
 
 interface ProfileSetupProps {
   children: ReactNode;
@@ -22,12 +25,16 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
   const queryClient = useQueryClient();
   const isAuthenticated = !!identity;
   
+  const actorGuard = useActorInitGuard();
+  
   const { 
     data: userProfile, 
     isLoading: profileLoading, 
     isFetched: profileFetched,
     error: profileError,
-    refetch: refetchProfile
+    refetch: refetchProfile,
+    actorInitStatus,
+    actorInitError,
   } = useGetCallerUserProfile();
   
   const { data: onboardingAnswers, isFetched: onboardingFetched } = useGetOnboardingAnswers();
@@ -46,9 +53,35 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('profile');
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Detect timeout errors
-  const isTimeout = profileError?.message?.toLowerCase().includes('timeout') || 
-                    profileError?.message?.toLowerCase().includes('timed out');
+  // Use effect to set onboarding state instead of during render
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Profile exists - check onboarding completion
+    if (userProfile && onboardingFetched) {
+      if (onboardingAnswers) {
+        const hasCompletedOnboarding = 
+          onboardingAnswers.year.trim() !== '' &&
+          onboardingAnswers.city.trim() !== '' &&
+          onboardingAnswers.address.trim() !== '';
+        
+        if (!hasCompletedOnboarding) {
+          setShowOnboarding(true);
+          setOnboardingStep('questions');
+        }
+      } else {
+        // No onboarding answers exist
+        setShowOnboarding(true);
+        setOnboardingStep('questions');
+      }
+    }
+
+    // No profile exists - start profile creation
+    if (!userProfile && profileFetched && !profileError) {
+      setShowOnboarding(true);
+      setOnboardingStep('profile');
+    }
+  }, [userProfile, profileFetched, profileError, onboardingAnswers, onboardingFetched, isAuthenticated]);
 
   const handleEmailChange = (value: string) => {
     setEmail(value);
@@ -143,7 +176,11 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
   };
 
   const handleRetry = () => {
-    refetchProfile();
+    if (actorInitStatus === 'error' || actorInitStatus === 'timeout') {
+      actorGuard.retry();
+    } else {
+      refetchProfile();
+    }
   };
 
   // Not authenticated - show welcome screen
@@ -160,8 +197,8 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
     );
   }
 
-  // Show timeout error screen
-  if (isTimeout && profileFetched) {
+  // Show actor initialization timeout screen
+  if (isAuthenticated && actorInitStatus === 'timeout') {
     return (
       <AuthResolutionErrorScreen
         variant="timeout"
@@ -171,12 +208,35 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
     );
   }
 
-  // Show general error screen for other errors
-  if (profileError && profileFetched && !isTimeout) {
+  // Show actor initialization error screen
+  if (isAuthenticated && actorInitStatus === 'error') {
     return (
       <AuthResolutionErrorScreen
         variant="error"
-        errorMessage={profileError.message}
+        errorMessage={actorInitError?.message || 'Failed to connect to the backend. Please try again.'}
+        onRetry={handleRetry}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Show timeout error screen for profile query
+  if (profileError && profileFetched && isActorInitTimeout(profileError)) {
+    return (
+      <AuthResolutionErrorScreen
+        variant="timeout"
+        onRetry={handleRetry}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Show general error screen for other profile errors
+  if (profileError && profileFetched && !isActorInitTimeout(profileError)) {
+    return (
+      <AuthResolutionErrorScreen
+        variant="error"
+        errorMessage={sanitizeErrorMessage(profileError)}
         onRetry={handleRetry}
         onLogout={handleLogout}
       />
@@ -214,23 +274,11 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
         onboardingAnswers.city.trim() !== '' &&
         onboardingAnswers.address.trim() !== '';
       
-      if (!hasCompletedOnboarding) {
-        // Show onboarding questions if not completed
-        if (!showOnboarding) {
-          setShowOnboarding(true);
-          setOnboardingStep('questions');
-        }
-      } else {
+      if (hasCompletedOnboarding) {
         // Valid profile with completed onboarding - render app
         return <>{children}</>;
       }
-    } else if (onboardingFetched && !onboardingAnswers) {
-      // No onboarding answers exist, show questions
-      if (!showOnboarding) {
-        setShowOnboarding(true);
-        setOnboardingStep('questions');
-      }
-    } else {
+    } else if (!onboardingFetched) {
       // Still loading onboarding answers
       return (
         <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-4">
@@ -240,14 +288,6 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
           </div>
         </div>
       );
-    }
-  }
-
-  // No profile exists - automatically start profile creation
-  if (!userProfile && profileFetched) {
-    if (!showOnboarding) {
-      setShowOnboarding(true);
-      setOnboardingStep('profile');
     }
   }
 
@@ -318,7 +358,7 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
               <DialogHeader>
                 <DialogTitle>Tell Us More About You</DialogTitle>
                 <DialogDescription>
-                  Help us personalize your experience with a few more details
+                  Help us personalize your experience
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleQuestionsSubmit} className="space-y-4">
@@ -328,7 +368,7 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
                     id="year"
                     value={year}
                     onChange={(e) => setYear(e.target.value)}
-                    placeholder="e.g., 2nd Year, Final Year"
+                    placeholder="e.g., 2nd Year"
                     required
                   />
                 </div>
@@ -348,7 +388,7 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
                     id="address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Your current address"
+                    placeholder="e.g., Jayanagar, Bangalore"
                     required
                   />
                 </div>
@@ -360,7 +400,7 @@ export default function ProfileSetup({ children }: ProfileSetupProps) {
           )}
         </DialogContent>
       </Dialog>
-      {!showOnboarding && children}
+      {children}
     </>
   );
 }

@@ -1,62 +1,91 @@
 {
   "kind": "build_request",
-  "title": "Rebuild footer to match uploaded screenshot layout (beige/black theme)",
+  "title": "Fix profile load failure when backend canister is stopped and remove createActor agentOptions warning",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Rebuild the existing footer component to match the structure and spacing of the uploaded screenshot: three main columns (left: brand name + short description; middle: “Quick Links” list; right: “About” heading + short paragraph), followed by a single bottom copyright line.",
+      "id": "REQ-5",
+      "text": "Detect the specific Internet Computer rejection case where the backend canister is stopped (e.g., reject_message contains \"is stopped\" / error_code \"IC0508\") during authenticated actor initialization (including `_initializeAccessControlWithSecret`) and surface a clear, user-friendly error message in the UI instead of the generic \"Something Went Wrong\".",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "make it like this",
-          "1 but keep the colour like the app is i mean the beige and black colour",
-          "replace with the projects name",
-          "2 yess",
-          "yess go for it"
+          "reject_message\": \"Canister acg2y-eiaaa-aaaab-aan7a-cai is stopped\"",
+          "Method name: _initializeAccessControlWithSecret",
+          "User message: \"build it\""
         ]
       },
       "acceptanceCriteria": [
-        "Footer uses a 3-column layout on desktop and stacks cleanly on mobile (brand/description, quick links, about).",
-        "Middle column contains link items: Buy, Sell, Rent, Lost & Found and routes to /buy, /sell, /rent, /lost-found.",
-        "Right column shows an About paragraph (not just a single 'About Us' link) using the project name (UniXange) in the text.",
-        "Bottom area shows only: “© {currentYear} UniXange. All Rights Reserved.” centered (or visually matching the screenshot), and removes the “Built with … caffeine.ai” line.",
-        "Overall colors remain consistent with the app’s beige/black theme (no new color scheme introduced), using existing Tailwind tokens (e.g., bg-background/bg-card, text-foreground, muted-foreground)."
+        "When the actor init flow fails with an IC rejection indicating the canister is stopped, the rendered error screen message explicitly indicates the backend is currently unavailable because the canister is stopped.",
+        "The error screen includes the canister ID from the error payload (e.g., \"acg2y-eiaaa-aaaab-aan7a-cai\") in the displayed message (or a clearly labeled details section).",
+        "The existing Retry and Logout actions remain available (Retry uses the existing in-app retry behavior in ProfileSetup)."
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "Ensure the updated footer is integrated in the global layout without changing routing or authentication logic, and that the app builds successfully after the previous failed build attempt.",
+      "id": "REQ-6",
+      "text": "Update error sanitization / formatting so that stopped-canister errors are categorized and converted into stable English user-facing text (while still logging the raw error to the console for debugging).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "❌ Sorry, app creation didn't work out",
-          "It looks like the build didn’t go through — want me to try generating it again?",
-          "yess go for it"
+          "\"status\": \"non_replicated_rejection\"",
+          "\"error_code\": \"IC0508\"",
+          "\"reject_code\": 5"
         ]
       },
       "acceptanceCriteria": [
-        "No changes are made to backend canister code.",
-        "No changes are made to immutable hook files under frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
-        "Footer renders on all pages as before (via App layout), with no runtime errors or broken links.",
-        "Project compiles without TypeScript or lint errors related to the footer changes."
+        "A stopped-canister error is mapped to a deterministic, readable message (not a raw CBOR/agent payload) suitable for `AuthResolutionErrorScreen`.",
+        "Raw error details continue to be logged to the browser console to aid debugging without being shown verbatim in the UI."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Eliminate the runtime warning \"Detected both agent and agentOptions passed to createActor. Ignoring agentOptions and proceeding with the provided agent.\" by ensuring actor creation only passes one of `agent` or `agentOptions` (not both) when calling `createActorWithConfig`.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Detected both agent and agentOptions passed to createActor. Ignoring agentOptions and proceeding with the provided agent."
+        ]
+      },
+      "acceptanceCriteria": [
+        "The warning about passing both `agent` and `agentOptions` no longer appears in the browser console during login/profile load.",
+        "Authenticated and anonymous actor creation continue to work as before (no regressions in profile loading flow aside from improved error handling)."
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Prevent duplicated access-control initialization calls during app startup by consolidating authenticated actor initialization behind the guarded path (so `_initializeAccessControlWithSecret` is not triggered redundantly by multiple actor hooks).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "Method name: _initializeAccessControlWithSecret"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On a normal authenticated load, `_initializeAccessControlWithSecret` is invoked at most once per identity/session initialization flow (unless the user explicitly retries).",
+        "Retry from the error screen re-runs actor initialization via the existing in-app retry mechanism and does not require a full page reload."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files listed as immutable in SYSTEM_CONTEXT (frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui).",
-    "Keep all backend logic in the single Motoko actor; no backend changes are required for this footer-only update."
+    "Do not modify any files under frontend/src/components/ui (read-only shadcn components).",
+    "Do not edit immutable paths listed by SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx). If changes are needed, implement safe alternatives via new hooks/utilities and update non-immutable call sites accordingly.",
+    "Backend must remain a single Motoko actor in backend/main.mo; add migration.mo only if persistent state schema changes (not expected for this fix)."
   ],
   "nonGoals": [
-    "Adding new pages or routes beyond using existing routes (/buy, /sell, /rent, /lost-found, /about, etc.).",
-    "Introducing new authentication, analytics, or third-party integrations.",
-    "Changing the global theme tokens in a way that alters the app’s overall beige/black visual identity."
+    "Starting/resuming the stopped canister from within the app (this is an operational/deployment action, not an application feature).",
+    "Adding new authentication providers beyond Internet Identity.",
+    "Implementing real-time features (WebSockets/push)."
   ],
   "imageRequirements": {
     "required": [],

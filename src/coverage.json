@@ -1,36 +1,74 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T14:15:09.081Z",
+  "generatedAt": "2026-02-06T15:06:43.072Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-1",
-        "summary": "Rebuild the existing footer component to match the structure and spacing of the uploaded screenshot: three main columns (left: brand name + short description; middle: “Quick Links” list; right: “About” heading + short paragraph), followed by a single bottom copyright line.",
+        "id": "REQ-5",
+        "summary": "Detect the specific Internet Computer rejection case where the backend canister is stopped (e.g., reject_message contains \"is stopped\" / error_code \"IC0508\") during authenticated actor initialization (including `_initializeAccessControlWithSecret`) and surface a clear, user-friendly error message in the UI instead of the generic \"Something Went Wrong\".",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/Footer.tsx"
+          "frontend/src/utils/icRejectionErrors.ts",
+          "frontend/src/utils/sanitizeErrorMessage.ts",
+          "frontend/src/hooks/useActorInitGuard.ts",
+          "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/components/AuthResolutionErrorScreen.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/Footer.tsx"
+          "frontend/src/utils/icRejectionErrors.ts",
+          "frontend/src/utils/sanitizeErrorMessage.ts",
+          "frontend/src/hooks/useActorInitGuard.ts",
+          "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/components/AuthResolutionErrorScreen.tsx"
         ]
       },
       {
-        "id": "REQ-2",
-        "summary": "Ensure the updated footer is integrated in the global layout without changing routing or authentication logic, and that the app builds successfully after the previous failed build attempt.",
+        "id": "REQ-6",
+        "summary": "Update error sanitization / formatting so that stopped-canister errors are categorized and converted into stable English user-facing text (while still logging the raw error to the console for debugging).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/components/Footer.tsx"
+          "frontend/src/utils/sanitizeErrorMessage.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/utils/icRejectionErrors.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/Footer.tsx"
+          "frontend/src/utils/sanitizeErrorMessage.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/utils/icRejectionErrors.ts"
+        ]
+      },
+      {
+        "id": "REQ-7",
+        "summary": "Eliminate the runtime warning \"Detected both agent and agentOptions passed to createActor. Ignoring agentOptions and proceeding with the provided agent.\" by ensuring actor creation only passes one of `agent` or `agentOptions` (not both) when calling `createActorWithConfig`.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/config.ts",
+          "frontend/src/hooks/useActorInitGuard.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useActorInitGuard.ts"
+        ]
+      },
+      {
+        "id": "REQ-8",
+        "summary": "Prevent duplicated access-control initialization calls during app startup by consolidating authenticated actor initialization behind the guarded path (so `_initializeAccessControlWithSecret` is not triggered redundantly by multiple actor hooks).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/hooks/useActorInitGuard.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/hooks/useActorInitGuard.ts"
         ]
       }
     ]
@@ -40,7 +78,12 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/Footer.tsx",
+    "frontend/src/components/AuthResolutionErrorScreen.tsx",
+    "frontend/src/components/ProfileSetup.tsx",
+    "frontend/src/hooks/useActorInitGuard.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/utils/icRejectionErrors.ts",
+    "frontend/src/utils/sanitizeErrorMessage.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
