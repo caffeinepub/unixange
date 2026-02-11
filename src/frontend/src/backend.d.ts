@@ -48,13 +48,26 @@ export interface RentalItem {
     condition: string;
     images: Array<Uint8Array>;
 }
+export interface NewConversation {
+    participants: [UserId, UserId];
+    message: NewMessage;
+}
 export type Rupee = bigint;
 export type UserId = Principal;
+export interface NewMessage {
+    content: string;
+    sender: UserId;
+}
 export type ItemId = bigint;
 export interface OnboardingAnswers {
     city: string;
     year: string;
     address: string;
+}
+export interface Message {
+    id: bigint;
+    content: string;
+    sender: UserId;
 }
 export interface UserProfile {
     name: string;
@@ -68,6 +81,11 @@ export interface MinimalItem {
     image: Uint8Array;
     dailyPrice?: Rupee;
     price?: Rupee;
+}
+export interface ChatConversation {
+    participants: [UserId, UserId];
+    messages: Array<Message>;
+    isOpen: boolean;
 }
 export enum UserRole {
     admin = "admin",
@@ -89,6 +107,7 @@ export interface backendInterface {
     addBuySellItem(title: string, description: string, price: Rupee, condition: string, category: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>, isFromSellSection: boolean): Promise<void>;
     addItem(section: Variant_found_lost_rent_buySell, title: string, description: string, price: Rupee | null, dailyPrice: Rupee | null, condition: string | null, category: string | null, location: string | null, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    closeConversation(conversationId: string): Promise<void>;
     createUserProfile(profile: UserProfile): Promise<void>;
     deleteItem(itemId: ItemId): Promise<void>;
     deleteLostFoundItem(itemId: ItemId): Promise<void>;
@@ -100,6 +119,7 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getLostFoundItem(itemId: ItemId): Promise<LostFoundItem | null>;
     getLostFoundItems(): Promise<Array<LostFoundItem>>;
+    getMessages(conversationId: string, offset: bigint, limit: bigint): Promise<Array<Message>>;
     getOnboardingAnswers(): Promise<OnboardingAnswers | null>;
     getRentalItem(itemId: ItemId): Promise<RentalItem | null>;
     getRentalItems(): Promise<Array<RentalItem>>;
@@ -109,7 +129,10 @@ export interface backendInterface {
     markAsRecovered(itemId: ItemId): Promise<void>;
     postFoundItem(title: string, description: string, location: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
     postLostItem(title: string, description: string, location: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
+    reopenConversation(conversationId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    sendMessage(conversationId: string, message: NewMessage): Promise<void>;
     setOnboardingAnswers(answers: OnboardingAnswers): Promise<void>;
+    startConversation(newConversation: NewConversation): Promise<void>;
     toMinimalItemList(): Promise<Array<MinimalItem>>;
 }

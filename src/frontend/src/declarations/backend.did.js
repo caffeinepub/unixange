@@ -55,6 +55,11 @@ export const LostFoundItem = IDL.Record({
   'location' : IDL.Text,
   'images' : IDL.Vec(IDL.Vec(IDL.Nat8)),
 });
+export const Message = IDL.Record({
+  'id' : IDL.Nat,
+  'content' : IDL.Text,
+  'sender' : UserId,
+});
 export const OnboardingAnswers = IDL.Record({
   'city' : IDL.Text,
   'year' : IDL.Text,
@@ -71,6 +76,14 @@ export const RentalItem = IDL.Record({
   'dailyPrice' : Rupee,
   'condition' : IDL.Text,
   'images' : IDL.Vec(IDL.Vec(IDL.Nat8)),
+});
+export const NewMessage = IDL.Record({
+  'content' : IDL.Text,
+  'sender' : UserId,
+});
+export const NewConversation = IDL.Record({
+  'participants' : IDL.Tuple(UserId, UserId),
+  'message' : NewMessage,
 });
 export const MinimalItem = IDL.Record({
   'id' : ItemId,
@@ -149,6 +162,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'closeConversation' : IDL.Func([IDL.Text], [], []),
   'createUserProfile' : IDL.Func([UserProfile], [], []),
   'deleteItem' : IDL.Func([ItemId], [], []),
   'deleteLostFoundItem' : IDL.Func([ItemId], [], []),
@@ -168,6 +182,11 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getLostFoundItem' : IDL.Func([ItemId], [IDL.Opt(LostFoundItem)], ['query']),
   'getLostFoundItems' : IDL.Func([], [IDL.Vec(LostFoundItem)], ['query']),
+  'getMessages' : IDL.Func(
+      [IDL.Text, IDL.Nat, IDL.Nat],
+      [IDL.Vec(Message)],
+      ['query'],
+    ),
   'getOnboardingAnswers' : IDL.Func(
       [],
       [IDL.Opt(OnboardingAnswers)],
@@ -213,8 +232,11 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'reopenConversation' : IDL.Func([IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'sendMessage' : IDL.Func([IDL.Text, NewMessage], [], []),
   'setOnboardingAnswers' : IDL.Func([OnboardingAnswers], [], []),
+  'startConversation' : IDL.Func([NewConversation], [], []),
   'toMinimalItemList' : IDL.Func([], [IDL.Vec(MinimalItem)], ['query']),
 });
 
@@ -268,6 +290,11 @@ export const idlFactory = ({ IDL }) => {
     'location' : IDL.Text,
     'images' : IDL.Vec(IDL.Vec(IDL.Nat8)),
   });
+  const Message = IDL.Record({
+    'id' : IDL.Nat,
+    'content' : IDL.Text,
+    'sender' : UserId,
+  });
   const OnboardingAnswers = IDL.Record({
     'city' : IDL.Text,
     'year' : IDL.Text,
@@ -284,6 +311,11 @@ export const idlFactory = ({ IDL }) => {
     'dailyPrice' : Rupee,
     'condition' : IDL.Text,
     'images' : IDL.Vec(IDL.Vec(IDL.Nat8)),
+  });
+  const NewMessage = IDL.Record({ 'content' : IDL.Text, 'sender' : UserId });
+  const NewConversation = IDL.Record({
+    'participants' : IDL.Tuple(UserId, UserId),
+    'message' : NewMessage,
   });
   const MinimalItem = IDL.Record({
     'id' : ItemId,
@@ -362,6 +394,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'closeConversation' : IDL.Func([IDL.Text], [], []),
     'createUserProfile' : IDL.Func([UserProfile], [], []),
     'deleteItem' : IDL.Func([ItemId], [], []),
     'deleteLostFoundItem' : IDL.Func([ItemId], [], []),
@@ -385,6 +418,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getLostFoundItems' : IDL.Func([], [IDL.Vec(LostFoundItem)], ['query']),
+    'getMessages' : IDL.Func(
+        [IDL.Text, IDL.Nat, IDL.Nat],
+        [IDL.Vec(Message)],
+        ['query'],
+      ),
     'getOnboardingAnswers' : IDL.Func(
         [],
         [IDL.Opt(OnboardingAnswers)],
@@ -430,8 +468,11 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'reopenConversation' : IDL.Func([IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'sendMessage' : IDL.Func([IDL.Text, NewMessage], [], []),
     'setOnboardingAnswers' : IDL.Func([OnboardingAnswers], [], []),
+    'startConversation' : IDL.Func([NewConversation], [], []),
     'toMinimalItemList' : IDL.Func([], [IDL.Vec(MinimalItem)], ['query']),
   });
 };

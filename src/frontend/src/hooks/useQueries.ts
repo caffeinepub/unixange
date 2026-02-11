@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActorInitGuard } from './useActorInitGuard';
+import { useInternetIdentity } from './useInternetIdentity';
 import type {
   BuySellItem,
   RentalItem,
@@ -8,6 +9,10 @@ import type {
   OnboardingAnswers,
   MinimalItem,
   Variant_found_lost_rent_buySell,
+  NewConversation,
+  NewMessage,
+  Message,
+  UserId,
 } from '../backend';
 import { ExternalBlob } from '../backend';
 import { withTimeout } from '../utils/promiseTimeout';
@@ -189,97 +194,14 @@ export function useGetLostFoundItems() {
   });
 }
 
-export function useGetMinimalItems() {
-  const { actor, isInitializing: actorFetching } = useActorInitGuard();
-
-  return useQuery<MinimalItem[]>({
-    queryKey: ['minimalItems'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        return await actor.toMinimalItemList();
-      } catch (error) {
-        console.error('Get minimal items error:', error);
-        throw new Error(sanitizeErrorMessage(error));
-      }
-    },
-    enabled: !!actor && !actorFetching,
-  });
-}
-
 // ========== Item Mutations ==========
-
-export function useAddItem() {
-  const { actor } = useActorInitGuard();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      section,
-      title,
-      description,
-      price,
-      dailyPrice,
-      condition,
-      category,
-      location,
-      images,
-      storageBlobs,
-    }: {
-      section: Variant_found_lost_rent_buySell;
-      title: string;
-      description: string;
-      price?: bigint;
-      dailyPrice?: bigint;
-      condition?: string;
-      category?: string;
-      location?: string;
-      images: Uint8Array[];
-      storageBlobs: ExternalBlob[];
-    }) => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        await actor.addItem(
-          section,
-          title,
-          description,
-          price ?? null,
-          dailyPrice ?? null,
-          condition ?? null,
-          category ?? null,
-          location ?? null,
-          images,
-          storageBlobs
-        );
-      } catch (error) {
-        console.error('Add item error:', error);
-        throw new Error(sanitizeErrorMessage(error));
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['buySellItems'] });
-      queryClient.invalidateQueries({ queryKey: ['rentalItems'] });
-      queryClient.invalidateQueries({ queryKey: ['lostFoundItems'] });
-      queryClient.invalidateQueries({ queryKey: ['minimalItems'] });
-    },
-  });
-}
 
 export function useAddBuySellItem() {
   const { actor } = useActorInitGuard();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      title,
-      description,
-      price,
-      condition,
-      category,
-      images,
-      storageBlobs,
-      isFromSellSection,
-    }: {
+    mutationFn: async (params: {
       title: string;
       description: string;
       price: bigint;
@@ -292,14 +214,14 @@ export function useAddBuySellItem() {
       if (!actor) throw new Error('Actor not available');
       try {
         await actor.addBuySellItem(
-          title,
-          description,
-          price,
-          condition,
-          category,
-          images,
-          storageBlobs,
-          isFromSellSection
+          params.title,
+          params.description,
+          params.price,
+          params.condition,
+          params.category,
+          params.images,
+          params.storageBlobs,
+          params.isFromSellSection
         );
       } catch (error) {
         console.error('Add buy/sell item error:', error);
@@ -308,7 +230,6 @@ export function useAddBuySellItem() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buySellItems'] });
-      queryClient.invalidateQueries({ queryKey: ['minimalItems'] });
     },
   });
 }
@@ -318,15 +239,7 @@ export function useListForRent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      title,
-      description,
-      dailyPrice,
-      condition,
-      category,
-      images,
-      storageBlobs,
-    }: {
+    mutationFn: async (params: {
       title: string;
       description: string;
       dailyPrice: bigint;
@@ -338,13 +251,13 @@ export function useListForRent() {
       if (!actor) throw new Error('Actor not available');
       try {
         await actor.listForRent(
-          title,
-          description,
-          dailyPrice,
-          condition,
-          category,
-          images,
-          storageBlobs
+          params.title,
+          params.description,
+          params.dailyPrice,
+          params.condition,
+          params.category,
+          params.images,
+          params.storageBlobs
         );
       } catch (error) {
         console.error('List for rent error:', error);
@@ -353,7 +266,6 @@ export function useListForRent() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rentalItems'] });
-      queryClient.invalidateQueries({ queryKey: ['minimalItems'] });
     },
   });
 }
@@ -363,13 +275,7 @@ export function usePostLostItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      title,
-      description,
-      location,
-      images,
-      storageBlobs,
-    }: {
+    mutationFn: async (params: {
       title: string;
       description: string;
       location: string;
@@ -379,11 +285,11 @@ export function usePostLostItem() {
       if (!actor) throw new Error('Actor not available');
       try {
         await actor.postLostItem(
-          title,
-          description,
-          location,
-          images,
-          storageBlobs
+          params.title,
+          params.description,
+          params.location,
+          params.images,
+          params.storageBlobs
         );
       } catch (error) {
         console.error('Post lost item error:', error);
@@ -392,7 +298,6 @@ export function usePostLostItem() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lostFoundItems'] });
-      queryClient.invalidateQueries({ queryKey: ['minimalItems'] });
     },
   });
 }
@@ -402,13 +307,7 @@ export function usePostFoundItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      title,
-      description,
-      location,
-      images,
-      storageBlobs,
-    }: {
+    mutationFn: async (params: {
       title: string;
       description: string;
       location: string;
@@ -418,11 +317,11 @@ export function usePostFoundItem() {
       if (!actor) throw new Error('Actor not available');
       try {
         await actor.postFoundItem(
-          title,
-          description,
-          location,
-          images,
-          storageBlobs
+          params.title,
+          params.description,
+          params.location,
+          params.images,
+          params.storageBlobs
         );
       } catch (error) {
         console.error('Post found item error:', error);
@@ -431,7 +330,6 @@ export function usePostFoundItem() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lostFoundItems'] });
-      queryClient.invalidateQueries({ queryKey: ['minimalItems'] });
     },
   });
 }
@@ -453,7 +351,6 @@ export function useDeleteItem() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['buySellItems'] });
       queryClient.invalidateQueries({ queryKey: ['rentalItems'] });
-      queryClient.invalidateQueries({ queryKey: ['minimalItems'] });
     },
   });
 }
@@ -474,27 +371,85 @@ export function useDeleteLostFoundItem() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lostFoundItems'] });
-      queryClient.invalidateQueries({ queryKey: ['minimalItems'] });
     },
   });
 }
 
-export function useMarkAsRecovered() {
+// ========== Chat Queries ==========
+
+export function useStartConversation() {
   const { actor } = useActorInitGuard();
-  const queryClient = useQueryClient();
+  const { identity } = useInternetIdentity();
 
   return useMutation({
-    mutationFn: async (itemId: bigint) => {
+    mutationFn: async (params: { listingOwnerId: UserId; initialMessage: string }) => {
       if (!actor) throw new Error('Actor not available');
+      if (!identity) throw new Error('User not authenticated');
+      
       try {
-        await actor.markAsRecovered(itemId);
+        const callerPrincipal = identity.getPrincipal();
+        const newConversation: NewConversation = {
+          participants: [callerPrincipal, params.listingOwnerId],
+          message: {
+            sender: callerPrincipal,
+            content: params.initialMessage,
+          },
+        };
+        await actor.startConversation(newConversation);
+        
+        // Generate conversation ID (same logic as backend)
+        const [p1, p2] = [callerPrincipal.toText(), params.listingOwnerId.toText()].sort();
+        return `${p1}|${p2}`;
       } catch (error) {
-        console.error('Mark as recovered error:', error);
+        console.error('Start conversation error:', error);
         throw new Error(sanitizeErrorMessage(error));
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['lostFoundItems'] });
+  });
+}
+
+export function useGetMessages(conversationId: string | null, enabled: boolean = true) {
+  const { actor, isInitializing: actorFetching } = useActorInitGuard();
+
+  return useQuery<Message[]>({
+    queryKey: ['messages', conversationId],
+    queryFn: async () => {
+      if (!actor || !conversationId) throw new Error('Actor or conversation ID not available');
+      try {
+        return await actor.getMessages(conversationId, BigInt(0), BigInt(100));
+      } catch (error) {
+        console.error('Get messages error:', error);
+        throw new Error(sanitizeErrorMessage(error));
+      }
+    },
+    enabled: !!actor && !actorFetching && !!conversationId && enabled,
+    refetchInterval: 3000, // Poll every 3 seconds
+  });
+}
+
+export function useSendMessage() {
+  const { actor } = useActorInitGuard();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: { conversationId: string; content: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      if (!identity) throw new Error('User not authenticated');
+      
+      try {
+        const newMessage: NewMessage = {
+          sender: identity.getPrincipal(),
+          content: params.content,
+        };
+        await actor.sendMessage(params.conversationId, newMessage);
+      } catch (error) {
+        console.error('Send message error:', error);
+        throw new Error(sanitizeErrorMessage(error));
+      }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['messages', variables.conversationId] });
     },
   });
 }

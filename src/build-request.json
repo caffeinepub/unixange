@@ -1,91 +1,117 @@
 {
   "kind": "build_request",
-  "title": "Fix profile load failure when backend canister is stopped and remove createActor agentOptions warning",
+  "title": "Add in-app contact chat between customers and listing owners (polling-based)",
   "priority": "normal",
   "requirements": [
     {
+      "id": "REQ-1",
+      "text": "Implement backend support for an in-app chat that lets a customer start (or reopen) a conversation with a listing owner and exchange messages using non-real-time polling.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-11",
+          "msg-13"
+        ],
+        "quotes": [
+          "i want that when customer click on contact option then they could communicate through chat with the user",
+          "built it"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes Candid methods to (1) create or fetch a conversation for a given listing and counterpart, (2) send a message, (3) fetch messages for a conversation with pagination/limits suitable for polling, and (4) list the caller’s conversations.",
+        "Conversation access is restricted so only the two participants (and admins, if admin support already exists) can read/send messages.",
+        "All chat methods enforce the same campus-membership/authorization expectations used elsewhere in the canister (no anonymous messaging).",
+        "Message timestamps/order are stable and deterministic so the frontend can safely poll and append new messages without duplicates.",
+        "If adding new stable state is required for chat persistence, provide an upgrade-safe approach (add a conditional `backend/migration.mo` only if the existing canister stores stable state that would break on upgrade)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Add a messages UI in the frontend: an inbox of conversations and a conversation thread screen that polls for new messages and allows sending messages.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-11",
+          "msg-13"
+        ],
+        "quotes": [
+          "i want that when customer click on contact option then they could communicate through chat with the user",
+          "built it"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A new route exists for an inbox screen where authenticated users can see their conversations (with last message preview and timestamp).",
+        "A conversation thread screen exists where users can read message history and send a new message; the thread polls for updates using React Query (e.g., `refetchInterval`).",
+        "Errors from chat calls are shown as stable English user-facing text (and raw errors are still logged to the console, consistent with existing patterns in `useQueries.ts`).",
+        "If the user is not authenticated, attempting to open messages prompts the existing login flow instead of failing silently.",
+        "User-facing text in the new UI is in English."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Wire the existing per-item “Contact” action to open the in-app chat with the correct listing owner, creating the conversation if needed.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-11"
+        ],
+        "quotes": [
+          "when customer click on contact option then they could communicate through chat with the user"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Clicking the “Contact” button rendered by `frontend/src/components/ItemCard.tsx` opens/navigates to a chat thread for that listing and seller/owner.",
+        "If a conversation does not yet exist, it is created on-demand and then opened.",
+        "The “Contact” button is disabled/hidden for the listing owner when viewing their own listing (to prevent messaging self)."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Update the existing static Contact page to clarify it is for support/feedback, and add a clear entry point to the new in-app messages inbox for contacting sellers/owners.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-11"
+        ],
+        "quotes": [
+          "i think there is a option called contact in the website"
+        ]
+      },
+      "acceptanceCriteria": [
+        "`/contact` remains a support/feedback page (no removal of existing support emails).",
+        "The Contact page includes an English call-to-action link/button that navigates authenticated users to the messages inbox (and prompts login if not authenticated)."
+      ]
+    },
+    {
       "id": "REQ-5",
-      "text": "Detect the specific Internet Computer rejection case where the backend canister is stopped (e.g., reject_message contains \"is stopped\" / error_code \"IC0508\") during authenticated actor initialization (including `_initializeAccessControlWithSecret`) and surface a clear, user-friendly error message in the UI instead of the generic \"Something Went Wrong\".",
+      "text": "Apply a cohesive visual theme across the new chat screens so they match the marketplace UI, using a distinct style that is consistent throughout the messages experience.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-13"
         ],
         "quotes": [
-          "reject_message\": \"Canister acg2y-eiaaa-aaaab-aan7a-cai is stopped\"",
-          "Method name: _initializeAccessControlWithSecret",
-          "User message: \"build it\""
+          "built it"
         ]
       },
       "acceptanceCriteria": [
-        "When the actor init flow fails with an IC rejection indicating the canister is stopped, the rendered error screen message explicitly indicates the backend is currently unavailable because the canister is stopped.",
-        "The error screen includes the canister ID from the error payload (e.g., \"acg2y-eiaaa-aaaab-aan7a-cai\") in the displayed message (or a clearly labeled details section).",
-        "The existing Retry and Logout actions remain available (Retry uses the existing in-app retry behavior in ProfileSetup)."
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Update error sanitization / formatting so that stopped-canister errors are categorized and converted into stable English user-facing text (while still logging the raw error to the console for debugging).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "\"status\": \"non_replicated_rejection\"",
-          "\"error_code\": \"IC0508\"",
-          "\"reject_code\": 5"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A stopped-canister error is mapped to a deterministic, readable message (not a raw CBOR/agent payload) suitable for `AuthResolutionErrorScreen`.",
-        "Raw error details continue to be logged to the browser console to aid debugging without being shown verbatim in the UI."
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Eliminate the runtime warning \"Detected both agent and agentOptions passed to createActor. Ignoring agentOptions and proceeding with the provided agent.\" by ensuring actor creation only passes one of `agent` or `agentOptions` (not both) when calling `createActorWithConfig`.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Detected both agent and agentOptions passed to createActor. Ignoring agentOptions and proceeding with the provided agent."
-        ]
-      },
-      "acceptanceCriteria": [
-        "The warning about passing both `agent` and `agentOptions` no longer appears in the browser console during login/profile load.",
-        "Authenticated and anonymous actor creation continue to work as before (no regressions in profile loading flow aside from improved error handling)."
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "text": "Prevent duplicated access-control initialization calls during app startup by consolidating authenticated actor initialization behind the guarded path (so `_initializeAccessControlWithSecret` is not triggered redundantly by multiple actor hooks).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Method name: _initializeAccessControlWithSecret"
-        ]
-      },
-      "acceptanceCriteria": [
-        "On a normal authenticated load, `_initializeAccessControlWithSecret` is invoked at most once per identity/session initialization flow (unless the user explicitly retries).",
-        "Retry from the error screen re-runs actor initialization via the existing in-app retry mechanism and does not require a full page reload."
+        "Messages UI uses a consistent theme (e.g., warm neutrals with a single accent color, consistent typography, spacing, and card styles) aligned with the existing Tailwind/Shadcn look-and-feel.",
+        "No blue/purple-dominant palette is introduced unless already present in the current design tokens.",
+        "The messages UI supports light/dark mode behavior consistent with the existing `ThemeProvider` setup in `frontend/src/App.tsx`."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/components/ui (read-only shadcn components).",
-    "Do not edit immutable paths listed by SYSTEM_CONTEXT (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx). If changes are needed, implement safe alternatives via new hooks/utilities and update non-immutable call sites accordingly.",
-    "Backend must remain a single Motoko actor in backend/main.mo; add migration.mo only if persistent state schema changes (not expected for this fix)."
+    "Backend must remain a single Motoko actor in `backend/main.mo` (no additional backend services).",
+    "Do not edit files under `frontend/immutablePaths` (e.g., `frontend/src/hooks/useInternetIdentity.ts(x)`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, and anything under `frontend/src/components/ui`). Compose with existing components instead.",
+    "No real-time transports (no WebSockets/Socket.io); implement chat via polling using React Query.",
+    "Use English for all new user-facing UI text."
   ],
   "nonGoals": [
-    "Starting/resuming the stopped canister from within the app (this is an operational/deployment action, not an application feature).",
-    "Adding new authentication providers beyond Internet Identity.",
-    "Implementing real-time features (WebSockets/push)."
+    "Implementing real-time typing indicators, presence, or read receipts.",
+    "Integrating third-party chat providers or external databases.",
+    "Replacing Internet Identity authentication with any third-party auth.",
+    "Adding push notifications or email notifications for new messages."
   ],
   "imageRequirements": {
     "required": [],

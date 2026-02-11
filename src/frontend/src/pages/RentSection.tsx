@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useGetRentalItems, useListForRent, useDeleteItem, useGetCallerUserProfile } from '@/hooks/useQueries';
+import { useNavigate } from '@tanstack/react-router';
+import { useGetRentalItems, useListForRent, useDeleteItem, useGetCallerUserProfile, useStartConversation } from '@/hooks/useQueries';
 import ItemCard from '@/components/ItemCard';
 import FloatingAddButton from '@/components/FloatingAddButton';
 import AddItemModal, { ItemFormData } from '@/components/AddItemModal';
@@ -13,11 +14,13 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 export default function RentSection() {
+  const navigate = useNavigate();
   const { data: items, isLoading, error, refetch, isRefetching } = useGetRentalItems();
   const { identity } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched: profileFetched } = useGetCallerUserProfile();
   const listForRent = useListForRent();
   const deleteItem = useDeleteItem();
+  const startConversation = useStartConversation();
   const [modalOpen, setModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -59,6 +62,24 @@ export default function RentSection() {
     }
 
     setModalOpen(true);
+  };
+
+  const handleContactOwner = async (ownerId: any, itemTitle: string) => {
+    if (!identity) {
+      setLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const conversationId = await startConversation.mutateAsync({
+        listingOwnerId: ownerId,
+        initialMessage: `Hi, I'm interested in renting "${itemTitle}"`,
+      });
+      toast.success('Conversation started');
+      navigate({ to: `/messages/${conversationId}` });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to start conversation');
+    }
   };
 
   const handleDeleteClick = (id: bigint, title: string) => {
@@ -151,6 +172,7 @@ export default function RentSection() {
                   image={item.images[0]}
                   showActions={!isOwner(item.ownerId)}
                   showDelete={isOwner(item.ownerId)}
+                  onMessageSeller={() => handleContactOwner(item.ownerId, item.title)}
                   onDelete={() => handleDeleteClick(item.id, item.title)}
                 />
               </div>

@@ -4,10 +4,11 @@ import { Input } from '@/components/ui/input';
 import { useInternetIdentity } from '@/hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
 import { useGetCallerUserProfile } from '@/hooks/useQueries';
-import { Search, Menu, X } from 'lucide-react';
+import { Search, Menu, X, MessageCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { setAuthIntent, clearAuthIntent } from '@/utils/authIntent';
 import ProfileAvatarMenu from '@/components/ProfileAvatarMenu';
+import LoginModal from '@/components/LoginModal';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   const isAuthenticated = !!identity;
   const disabled = loginStatus === 'logging-in';
@@ -72,6 +74,14 @@ export default function Header() {
     console.log('Search:', searchQuery);
   };
 
+  const handleMessagesClick = () => {
+    if (!isAuthenticated) {
+      setLoginModalOpen(true);
+      return;
+    }
+    navigate({ to: '/messages' });
+  };
+
   return (
     <header 
       className={`sticky top-0 z-50 border-b transition-marketplace ${
@@ -107,6 +117,17 @@ export default function Header() {
 
           {/* Right side - Desktop */}
           <div className="hidden items-center gap-3 lg:flex">
+            {isAuthenticated && (
+              <Button
+                onClick={handleMessagesClick}
+                variant="ghost"
+                size="sm"
+                className="rounded-md font-medium transition-marketplace"
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Messages
+              </Button>
+            )}
             {isAuthenticated ? (
               <ProfileAvatarMenu userProfile={userProfile} isLoading={profileLoading} />
             ) : (
@@ -150,6 +171,15 @@ export default function Header() {
             <div className="space-y-2">
               {isAuthenticated ? (
                 <>
+                  {/* Mobile messages button */}
+                  <Button
+                    onClick={handleMessagesClick}
+                    variant="outline"
+                    className="w-full justify-start rounded-md font-medium"
+                  >
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    Messages
+                  </Button>
                   {/* Mobile profile section */}
                   <div className="mb-4 rounded-md border border-border bg-accent px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -287,6 +317,8 @@ export default function Header() {
           </div>
         </form>
       </div>
+
+      <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
     </header>
   );
 }

@@ -134,13 +134,26 @@ export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
 }
+export interface NewConversation {
+    participants: [UserId, UserId];
+    message: NewMessage;
+}
 export type Rupee = bigint;
 export type UserId = Principal;
+export interface NewMessage {
+    content: string;
+    sender: UserId;
+}
 export type ItemId = bigint;
 export interface OnboardingAnswers {
     city: string;
     year: string;
     address: string;
+}
+export interface Message {
+    id: bigint;
+    content: string;
+    sender: UserId;
 }
 export interface UserProfile {
     name: string;
@@ -182,6 +195,7 @@ export interface backendInterface {
     addBuySellItem(title: string, description: string, price: Rupee, condition: string, category: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>, isFromSellSection: boolean): Promise<void>;
     addItem(section: Variant_found_lost_rent_buySell, title: string, description: string, price: Rupee | null, dailyPrice: Rupee | null, condition: string | null, category: string | null, location: string | null, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    closeConversation(conversationId: string): Promise<void>;
     createUserProfile(profile: UserProfile): Promise<void>;
     deleteItem(itemId: ItemId): Promise<void>;
     deleteLostFoundItem(itemId: ItemId): Promise<void>;
@@ -193,6 +207,7 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getLostFoundItem(itemId: ItemId): Promise<LostFoundItem | null>;
     getLostFoundItems(): Promise<Array<LostFoundItem>>;
+    getMessages(conversationId: string, offset: bigint, limit: bigint): Promise<Array<Message>>;
     getOnboardingAnswers(): Promise<OnboardingAnswers | null>;
     getRentalItem(itemId: ItemId): Promise<RentalItem | null>;
     getRentalItems(): Promise<Array<RentalItem>>;
@@ -202,8 +217,11 @@ export interface backendInterface {
     markAsRecovered(itemId: ItemId): Promise<void>;
     postFoundItem(title: string, description: string, location: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
     postLostItem(title: string, description: string, location: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
+    reopenConversation(conversationId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    sendMessage(conversationId: string, message: NewMessage): Promise<void>;
     setOnboardingAnswers(answers: OnboardingAnswers): Promise<void>;
+    startConversation(newConversation: NewConversation): Promise<void>;
     toMinimalItemList(): Promise<Array<MinimalItem>>;
 }
 import type { BuySellItem as _BuySellItem, ExternalBlob as _ExternalBlob, ItemId as _ItemId, LostFoundItem as _LostFoundItem, MinimalItem as _MinimalItem, OnboardingAnswers as _OnboardingAnswers, RentalItem as _RentalItem, Rupee as _Rupee, UserId as _UserId, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
@@ -346,6 +364,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n13(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async closeConversation(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.closeConversation(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.closeConversation(arg0);
             return result;
         }
     }
@@ -503,6 +535,20 @@ export class Backend implements backendInterface {
             return from_candid_vec_n27(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getMessages(arg0: string, arg1: bigint, arg2: bigint): Promise<Array<Message>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getMessages(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getMessages(arg0, arg1, arg2);
+            return result;
+        }
+    }
     async getOnboardingAnswers(): Promise<OnboardingAnswers | null> {
         if (this.processError) {
             try {
@@ -629,6 +675,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async reopenConversation(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.reopenConversation(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.reopenConversation(arg0);
+            return result;
+        }
+    }
     async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
         if (this.processError) {
             try {
@@ -643,6 +703,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async sendMessage(arg0: string, arg1: NewMessage): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.sendMessage(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.sendMessage(arg0, arg1);
+            return result;
+        }
+    }
     async setOnboardingAnswers(arg0: OnboardingAnswers): Promise<void> {
         if (this.processError) {
             try {
@@ -654,6 +728,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.setOnboardingAnswers(arg0);
+            return result;
+        }
+    }
+    async startConversation(arg0: NewConversation): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.startConversation(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.startConversation(arg0);
             return result;
         }
     }

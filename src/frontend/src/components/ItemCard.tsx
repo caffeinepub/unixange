@@ -18,6 +18,7 @@ interface ItemCardProps {
   showDelete?: boolean;
   onMessageSeller?: () => void;
   onDelete?: () => void;
+  disableContact?: boolean;
 }
 
 export default function ItemCard({
@@ -35,6 +36,7 @@ export default function ItemCard({
   showDelete = false,
   onMessageSeller,
   onDelete,
+  disableContact = false,
 }: ItemCardProps) {
   const displayImage = imageUrl || (image ? URL.createObjectURL(new Blob([new Uint8Array(image)])) : null);
 
@@ -98,6 +100,7 @@ export default function ItemCard({
           {showActions && (
             <Button 
               onClick={onMessageSeller}
+              disabled={disableContact}
               variant="default" 
               size="sm" 
               className="flex-1 rounded-md font-semibold transition-marketplace"

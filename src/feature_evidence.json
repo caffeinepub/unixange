@@ -2,14 +2,79 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-detect-the-specific-internet-computer-rejection-case-where-the-backend-canister-is-stopped-e-g-reject-message-contains-is-stopped-error-code-ic0508-during-authenticated-actor-initialization-including-initializeaccesscontrolwithsecret-and-surface-a-clear-user-friendly-error-message-in-the-ui-instead-of-the-generic-something-went-wrong",
-      "featureTitle": "Detect the specific Internet Computer rejection case where the backend canister is stopped (e.g., reject_message contains \"is stopped\" / error_code \"IC0508\") during authenticated actor initialization (including `_initializeAccessControlWithSecret`) and surface a clear, user-friendly error message in the UI instead of the generic \"Something Went Wrong\".",
+      "featureId": "feature-add-a-messages-ui-in-the-frontend-an-inbox-of-conversations-and-a-conversation-thread-screen-that-polls-for-new-messages-and-allows-sending-messages",
+      "featureTitle": "Add a messages UI in the frontend: an inbox of conversations and a conversation thread screen that polls for new messages and allows sending messages.",
       "files": [
-        "frontend/src/components/AuthResolutionErrorScreen.tsx",
-        "frontend/src/components/ProfileSetup.tsx",
-        "frontend/src/hooks/useActorInitGuard.ts",
-        "frontend/src/utils/icRejectionErrors.ts",
-        "frontend/src/utils/sanitizeErrorMessage.ts"
+        "frontend/src/App.tsx",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/MessagesInbox.tsx",
+        "frontend/src/pages/MessagesThread.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-wire-the-existing-per-item-contact-action-to-open-the-in-app-chat-with-the-correct-listing-owner-creating-the-conversation-if-needed",
+      "featureTitle": "Wire the existing per-item “Contact” action to open the in-app chat with the correct listing owner, creating the conversation if needed.",
+      "files": [
+        "frontend/src/components/ItemCard.tsx",
+        "frontend/src/pages/BuySection.tsx",
+        "frontend/src/pages/LostFoundSection.tsx",
+        "frontend/src/pages/RentSection.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-existing-static-contact-page-to-clarify-it-is-for-support-feedback-and-add-a-clear-entry-point-to-the-new-in-app-messages-inbox-for-contacting-sellers-owners",
+      "featureTitle": "Update the existing static Contact page to clarify it is for support/feedback, and add a clear entry point to the new in-app messages inbox for contacting sellers/owners.",
+      "files": [
+        "frontend/src/pages/Contact.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-apply-a-cohesive-visual-theme-across-the-new-chat-screens-so-they-match-the-marketplace-ui-using-a-distinct-style-that-is-consistent-throughout-the-messages-experience",
+      "featureTitle": "Apply a cohesive visual theme across the new chat screens so they match the marketplace UI, using a distinct style that is consistent throughout the messages experience.",
+      "files": [
+        "frontend/src/index.css",
+        "frontend/src/pages/MessagesInbox.tsx",
+        "frontend/src/pages/MessagesThread.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -22,70 +87,6 @@
       ],
       "testIds": [
         "REQ-5"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-error-sanitization-formatting-so-that-stopped-canister-errors-are-categorized-and-converted-into-stable-english-user-facing-text-while-still-logging-the-raw-error-to-the-console-for-debugging",
-      "featureTitle": "Update error sanitization / formatting so that stopped-canister errors are categorized and converted into stable English user-facing text (while still logging the raw error to the console for debugging).",
-      "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/utils/icRejectionErrors.ts",
-        "frontend/src/utils/sanitizeErrorMessage.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-6"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-eliminate-the-runtime-warning-detected-both-agent-and-agentoptions-passed-to-createactor-ignoring-agentoptions-and-proceeding-with-the-provided-agent-by-ensuring-actor-creation-only-passes-one-of-agent-or-agentoptions-not-both-when-calling-createactorwithconfig",
-      "featureTitle": "Eliminate the runtime warning \"Detected both agent and agentOptions passed to createActor. Ignoring agentOptions and proceeding with the provided agent.\" by ensuring actor creation only passes one of `agent` or `agentOptions` (not both) when calling `createActorWithConfig`.",
-      "files": [
-        "frontend/src/hooks/useActorInitGuard.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-7"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-prevent-duplicated-access-control-initialization-calls-during-app-startup-by-consolidating-authenticated-actor-initialization-behind-the-guarded-path-so-initializeaccesscontrolwithsecret-is-not-triggered-redundantly-by-multiple-actor-hooks",
-      "featureTitle": "Prevent duplicated access-control initialization calls during app startup by consolidating authenticated actor initialization behind the guarded path (so `_initializeAccessControlWithSecret` is not triggered redundantly by multiple actor hooks).",
-      "files": [
-        "frontend/src/components/ProfileSetup.tsx",
-        "frontend/src/hooks/useActorInitGuard.ts",
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-8"
       ],
       "confidence": "high"
     }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useGetLostFoundItems, usePostLostItem, usePostFoundItem, useDeleteLostFoundItem, useGetCallerUserProfile } from '@/hooks/useQueries';
+import { useNavigate } from '@tanstack/react-router';
+import { useGetLostFoundItems, usePostLostItem, usePostFoundItem, useDeleteLostFoundItem, useGetCallerUserProfile, useStartConversation } from '@/hooks/useQueries';
 import ItemCard from '@/components/ItemCard';
 import FloatingAddButton from '@/components/FloatingAddButton';
 import AddItemModal, { ItemFormData } from '@/components/AddItemModal';
@@ -19,12 +20,14 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 export default function LostFoundSection() {
+  const navigate = useNavigate();
   const { data: items, isLoading, error, refetch, isRefetching } = useGetLostFoundItems();
   const { identity } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched: profileFetched } = useGetCallerUserProfile();
   const postLostItem = usePostLostItem();
   const postFoundItem = usePostFoundItem();
   const deleteItem = useDeleteLostFoundItem();
+  const startConversation = useStartConversation();
   const [modalOpen, setModalOpen] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [modalSection, setModalSection] = useState<'lost' | 'found'>('lost');
@@ -101,6 +104,24 @@ export default function LostFoundSection() {
     }
 
     setChoiceDialogOpen(true);
+  };
+
+  const handleContactOwner = async (ownerId: any, itemTitle: string) => {
+    if (!identity) {
+      setLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const conversationId = await startConversation.mutateAsync({
+        listingOwnerId: ownerId,
+        initialMessage: `Hi, I saw your post about "${itemTitle}"`,
+      });
+      toast.success('Conversation started');
+      navigate({ to: `/messages/${conversationId}` });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to start conversation');
+    }
   };
 
   const handleDeleteClick = (id: bigint, title: string) => {
@@ -198,6 +219,7 @@ export default function LostFoundSection() {
                     image={item.images[0]}
                     showActions={!isOwner(item.ownerId)}
                     showDelete={isOwner(item.ownerId)}
+                    onMessageSeller={() => handleContactOwner(item.ownerId, item.title)}
                     onDelete={() => handleDeleteClick(item.id, item.title)}
                   />
                 ))}
@@ -231,6 +253,7 @@ export default function LostFoundSection() {
                     image={item.images[0]}
                     showActions={!isOwner(item.ownerId)}
                     showDelete={isOwner(item.ownerId)}
+                    onMessageSeller={() => handleContactOwner(item.ownerId, item.title)}
                     onDelete={() => handleDeleteClick(item.id, item.title)}
                   />
                 ))}

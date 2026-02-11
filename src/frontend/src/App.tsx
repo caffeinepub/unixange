@@ -12,6 +12,8 @@ import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 import Terms from '@/pages/Terms';
 import Privacy from '@/pages/Privacy';
+import MessagesInbox from '@/pages/MessagesInbox';
+import MessagesThread from '@/pages/MessagesThread';
 import ProfileSetup from '@/components/ProfileSetup';
 
 function Layout() {
@@ -86,6 +88,18 @@ const privacyRoute = createRoute({
   component: Privacy,
 });
 
+const messagesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/messages',
+  component: MessagesInbox,
+});
+
+const messagesThreadRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/messages/$conversationId',
+  component: MessagesThread,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   buyRoute,
@@ -96,6 +110,8 @@ const routeTree = rootRoute.addChildren([
   contactRoute,
   termsRoute,
   privacyRoute,
+  messagesRoute,
+  messagesThreadRoute,
 ]);
 
 const router = createRouter({ routeTree });

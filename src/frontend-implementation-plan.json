@@ -1,111 +1,120 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Harden actor initialization against stopped-canister failures and remove createActor warning",
+  "title": "Polling-based in-app messages UI wired to listing Contact actions",
   "requirements": [
     {
-      "id": "REQ-5",
-      "summary": "Detect stopped-canister IC rejection during authenticated actor initialization and show a clear UI error that includes the canister ID, while keeping Retry/Logout actions.",
+      "id": "REQ-2",
+      "summary": "Add inbox + conversation thread UI with React Query polling, send-message support, and auth/login prompting.",
       "acceptanceCriteria": [
-        "When the actor init flow fails with an IC rejection indicating the canister is stopped, the rendered error screen message explicitly indicates the backend is currently unavailable because the canister is stopped.",
-        "The error screen includes the canister ID from the error payload (e.g., \"acg2y-eiaaa-aaaab-aan7a-cai\") in the displayed message (or a clearly labeled details section).",
-        "The existing Retry and Logout actions remain available (Retry uses the existing in-app retry behavior in ProfileSetup)."
+        "A new route exists for an inbox screen where authenticated users can see their conversations (with last message preview and timestamp).",
+        "A conversation thread screen exists where users can read message history and send a new message; the thread polls for updates using React Query (e.g., `refetchInterval`).",
+        "Errors from chat calls are shown as stable English user-facing text (and raw errors are still logged to the console, consistent with existing patterns in `useQueries.ts`).",
+        "If the user is not authenticated, attempting to open messages prompts the existing login flow instead of failing silently.",
+        "User-facing text in the new UI is in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/icRejectionErrors.ts",
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Update the typed backend interface to include the chat-related types and methods required by the new Messages UI (conversation listing, create/fetch conversation for a listing + counterpart, message pagination for polling, and sending). Keep this file aligned with the canister Candid so the frontend can compile and call chat capabilities."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add React Query hooks/mutations for chat capabilities (list conversations, create-or-fetch conversation, fetch messages with pagination, send message). Follow existing patterns: log raw errors to console, throw sanitized/stable English error text via `sanitizeErrorMessage`, and use query invalidation/keys consistent with existing hooks."
+        },
+        {
+          "path": "frontend/src/pages/MessagesInbox.tsx",
           "operation": "create",
-          "description": "Add frontend-only parsing helpers to detect the stopped-canister rejection case (e.g., error_code IC0508 / reject_message contains \"is stopped\") and extract a canister ID when present."
+          "description": "Create an English Messages inbox screen that lists the caller’s conversations (show counterpart label, last message preview, and timestamp). Use shadcn-ui building blocks (e.g., Card/Button) to match the app UI. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/utils/sanitizeErrorMessage.ts",
-          "operation": "modify",
-          "description": "Use the new stopped-canister detection to return a stable, user-friendly message that explicitly says the backend canister is stopped and includes the extracted canister ID when available."
+          "path": "frontend/src/pages/MessagesThread.tsx",
+          "operation": "create",
+          "description": "Create an English conversation thread screen that displays message history and supports sending a message. Implement polling via React Query (e.g., `refetchInterval`) and safe message rendering (stable ordering, no duplicate display). Use shadcn-ui components (e.g., Card, Button, Input) for layout and actions. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/hooks/useActorInitGuard.ts",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "When authenticated actor initialization fails (including _initializeAccessControlWithSecret), keep logging the raw error to the console for debugging, and ensure the surfaced error message leverages the updated sanitization so ProfileSetup shows the stopped-canister-specific text."
+          "description": "Register and wire new routes for the messages inbox and conversation thread screens in the TanStack Router route tree so they are navigable (e.g., /messages and /messages/$conversationId). Ensure routing supports opening a specific conversation thread."
         },
         {
-          "path": "frontend/src/components/ProfileSetup.tsx",
+          "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Ensure the actor-init error screen and profile-load error screen display the stopped-canister-friendly message produced by sanitizeErrorMessage (so users see a clear backend-stopped message with canister ID), while keeping the existing Retry and Logout actions wired to the current in-app retry behavior."
-        },
-        {
-          "path": "frontend/src/components/AuthResolutionErrorScreen.tsx",
-          "operation": "modify",
-          "description": "Adjust the generic error rendering (variant=\"error\") to better accommodate longer, deterministic messages (including the canister ID details) without changing shadcn/ui components under frontend/src/components/ui."
+          "description": "Add a visible entry point to the new Messages inbox route in the existing header navigation (without adding new top-level pages beyond the required routes). If not authenticated, clicking should prompt login using the existing login flow (e.g., reuse LoginModal). Use existing styling patterns for consistency."
         }
       ]
     },
     {
-      "id": "REQ-6",
-      "summary": "Improve error sanitization/formatting so stopped-canister errors map to deterministic English text while raw errors remain console-logged.",
+      "id": "REQ-3",
+      "summary": "Wire per-item Contact to open (or create then open) the correct in-app chat thread; prevent self-messaging.",
       "acceptanceCriteria": [
-        "A stopped-canister error is mapped to a deterministic, readable message (not a raw CBOR/agent payload) suitable for `AuthResolutionErrorScreen`.",
-        "Raw error details continue to be logged to the browser console to aid debugging without being shown verbatim in the UI."
+        "Clicking the “Contact” button rendered by `frontend/src/components/ItemCard.tsx` opens/navigates to a chat thread for that listing and seller/owner.",
+        "If a conversation does not yet exist, it is created on-demand and then opened.",
+        "The “Contact” button is disabled/hidden for the listing owner when viewing their own listing (to prevent messaging self)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/sanitizeErrorMessage.ts",
+          "path": "frontend/src/components/ItemCard.tsx",
           "operation": "modify",
-          "description": "Extend sanitization rules to categorize stopped-canister rejections and return stable English user-facing text; avoid leaking raw agent/CBOR payload strings into the UI."
+          "description": "Ensure the ItemCard “Contact” action correctly triggers the provided handler and supports a disabled state for cases where messaging should not be allowed (e.g., self-messaging). Keep UI text in English and consistent with existing button styling. Use shadcn-ui Button patterns already present. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/BuySection.tsx",
           "operation": "modify",
-          "description": "Update query error logging to continue logging the raw error object to the console (not only formatted summaries) while keeping user-facing thrown messages deterministic and suitable for UI display, including stopped-canister mapping."
+          "description": "Wire each item card’s Contact action to start-or-fetch a conversation for the item’s listing + seller and then navigate to the thread route. If the viewer is not authenticated, prompt the existing login flow rather than failing silently. Maintain the existing rule to hide Contact for the owner (self-messaging prevention)."
         },
         {
-          "path": "frontend/src/utils/icRejectionErrors.ts",
+          "path": "frontend/src/pages/RentSection.tsx",
           "operation": "modify",
-          "description": "Add any additional normalization helpers needed by both sanitizeErrorMessage and query formatting (e.g., robust canister ID extraction from nested error shapes) to keep message mapping deterministic."
+          "description": "Wire each item card’s Contact action to start-or-fetch a conversation for the item’s listing + owner and then navigate to the thread route. If not authenticated, reuse the existing LoginModal prompting behavior (consistent with other gated actions). Ensure Contact remains hidden for the owner."
+        },
+        {
+          "path": "frontend/src/pages/LostFoundSection.tsx",
+          "operation": "modify",
+          "description": "Wire each item card’s Contact action to start-or-fetch a conversation for the item’s listing + owner and then navigate to the thread route. If not authenticated, prompt login. Ensure Contact remains hidden for the owner."
         }
       ]
     },
     {
-      "id": "REQ-7",
-      "summary": "Remove the createActor runtime warning by ensuring actor creation passes only one of agent or agentOptions.",
+      "id": "REQ-4",
+      "summary": "Keep /contact as support/feedback and add a clear authenticated entry point to the messages inbox for contacting sellers/owners.",
       "acceptanceCriteria": [
-        "The warning about passing both `agent` and `agentOptions` no longer appears in the browser console during login/profile load.",
-        "Authenticated and anonymous actor creation continue to work as before (no regressions in profile loading flow aside from improved error handling)."
+        "`/contact` remains a support/feedback page (no removal of existing support emails).",
+        "The Contact page includes an English call-to-action link/button that navigates authenticated users to the messages inbox (and prompts login if not authenticated)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/config.ts",
+          "path": "frontend/src/pages/Contact.tsx",
           "operation": "modify",
-          "description": "Update createActorWithConfig so it never forwards both an explicit agent and agentOptions into actor creation at the same time; ensure authenticated and anonymous creation paths each supply only one of the two to prevent the runtime warning."
-        },
-        {
-          "path": "frontend/src/hooks/useActorInitGuard.ts",
-          "operation": "modify",
-          "description": "Align guarded actor initialization calls with the updated createActorWithConfig behavior (ensuring the guarded path does not accidentally trigger the agent+agentOptions warning)."
+          "description": "Update the Contact page copy to clarify it is for support/feedback and add a clear English CTA that routes to the Messages inbox for contacting sellers/owners. Preserve existing support/feedback/help emails. If the user is not authenticated, the CTA should prompt the existing login flow (e.g., via LoginModal). Use shadcn-ui Button/Card styling conventions already used across the site. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-8",
-      "summary": "Consolidate authenticated initialization behind the guarded path to prevent duplicated access-control initialization calls on startup.",
+      "id": "REQ-5",
+      "summary": "Apply a cohesive chat visual theme consistent with the existing Tailwind/Shadcn marketplace UI and compatible with light/dark mode.",
       "acceptanceCriteria": [
-        "On a normal authenticated load, `_initializeAccessControlWithSecret` is invoked at most once per identity/session initialization flow (unless the user explicitly retries).",
-        "Retry from the error screen re-runs actor initialization via the existing in-app retry mechanism and does not require a full page reload."
+        "Messages UI uses a consistent theme (e.g., warm neutrals with a single accent color, consistent typography, spacing, and card styles) aligned with the existing Tailwind/Shadcn look-and-feel.",
+        "No blue/purple-dominant palette is introduced unless already present in the current design tokens.",
+        "The messages UI supports light/dark mode behavior consistent with the existing `ThemeProvider` setup in `frontend/src/App.tsx`."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Stop using the unguarded useActor hook for authenticated queries/mutations and instead source the actor from useActorInitGuard (so authenticated startup and access-control initialization are centralized and not duplicated)."
+          "description": "Add small, reusable Tailwind utility classes (or extend existing ones) for the messages experience (e.g., chat bubble spacing, thread container, message alignment) using the current design tokens (background/card/accent/primary) so the UI remains cohesive in both light and dark mode. Avoid introducing new blue/purple-dominant tokens."
         },
         {
-          "path": "frontend/src/components/ProfileSetup.tsx",
+          "path": "frontend/src/pages/MessagesInbox.tsx",
           "operation": "modify",
-          "description": "Ensure the Retry action continues to invoke the guarded in-app retry mechanism (actorGuard.retry) and that profile refetches rely on the guarded actor so access-control initialization is not redundantly re-triggered by multiple hooks."
+          "description": "Ensure inbox UI styling consistently uses the existing marketplace visual language (cards, borders, spacing, typography) and respects light/dark mode via current Tailwind tokens. Use shadcn-ui components where appropriate. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/hooks/useActorInitGuard.ts",
+          "path": "frontend/src/pages/MessagesThread.tsx",
           "operation": "modify",
-          "description": "Add lightweight protection against accidental duplicate initialization work within the guarded flow (e.g., ensure the guard remains the single source for authenticated actor readiness used by the rest of the app)."
+          "description": "Ensure thread UI styling (message bubbles, composer, timestamps, empty/error states) is visually consistent with the marketplace theme and respects light/dark mode via existing Tailwind tokens. Use shadcn-ui components where appropriate. Verify the component's usage instructions before implementing."
         }
       ]
     }

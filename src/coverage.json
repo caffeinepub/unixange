@@ -1,89 +1,111 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-06T15:06:43.072Z",
+  "generatedAt": "2026-02-11T22:46:57.594Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
+    "total": 5,
     "implemented": 4,
     "items": [
       {
+        "id": "REQ-1",
+        "summary": "Implement backend support for an in-app chat that lets a customer start (or reopen) a conversation with a listing owner and exchange messages using non-real-time polling.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Add a messages UI in the frontend: an inbox of conversations and a conversation thread screen that polls for new messages and allows sending messages.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/backend.d.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/MessagesInbox.tsx",
+          "frontend/src/pages/MessagesThread.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/components/Header.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/backend.d.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/MessagesInbox.tsx",
+          "frontend/src/pages/MessagesThread.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/components/Header.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Wire the existing per-item “Contact” action to open the in-app chat with the correct listing owner, creating the conversation if needed.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ItemCard.tsx",
+          "frontend/src/pages/BuySection.tsx",
+          "frontend/src/pages/RentSection.tsx",
+          "frontend/src/pages/LostFoundSection.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ItemCard.tsx",
+          "frontend/src/pages/BuySection.tsx",
+          "frontend/src/pages/RentSection.tsx",
+          "frontend/src/pages/LostFoundSection.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Update the existing static Contact page to clarify it is for support/feedback, and add a clear entry point to the new in-app messages inbox for contacting sellers/owners.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/Contact.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/Contact.tsx"
+        ]
+      },
+      {
         "id": "REQ-5",
-        "summary": "Detect the specific Internet Computer rejection case where the backend canister is stopped (e.g., reject_message contains \"is stopped\" / error_code \"IC0508\") during authenticated actor initialization (including `_initializeAccessControlWithSecret`) and surface a clear, user-friendly error message in the UI instead of the generic \"Something Went Wrong\".",
+        "summary": "Apply a cohesive visual theme across the new chat screens so they match the marketplace UI, using a distinct style that is consistent throughout the messages experience.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/utils/icRejectionErrors.ts",
-          "frontend/src/utils/sanitizeErrorMessage.ts",
-          "frontend/src/hooks/useActorInitGuard.ts",
-          "frontend/src/components/ProfileSetup.tsx",
-          "frontend/src/components/AuthResolutionErrorScreen.tsx"
+          "frontend/src/index.css",
+          "frontend/src/pages/MessagesInbox.tsx",
+          "frontend/src/pages/MessagesThread.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/utils/icRejectionErrors.ts",
-          "frontend/src/utils/sanitizeErrorMessage.ts",
-          "frontend/src/hooks/useActorInitGuard.ts",
-          "frontend/src/components/ProfileSetup.tsx",
-          "frontend/src/components/AuthResolutionErrorScreen.tsx"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Update error sanitization / formatting so that stopped-canister errors are categorized and converted into stable English user-facing text (while still logging the raw error to the console for debugging).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/utils/sanitizeErrorMessage.ts",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/utils/icRejectionErrors.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/utils/sanitizeErrorMessage.ts",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/utils/icRejectionErrors.ts"
-        ]
-      },
-      {
-        "id": "REQ-7",
-        "summary": "Eliminate the runtime warning \"Detected both agent and agentOptions passed to createActor. Ignoring agentOptions and proceeding with the provided agent.\" by ensuring actor creation only passes one of `agent` or `agentOptions` (not both) when calling `createActorWithConfig`.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/config.ts",
-          "frontend/src/hooks/useActorInitGuard.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useActorInitGuard.ts"
-        ]
-      },
-      {
-        "id": "REQ-8",
-        "summary": "Prevent duplicated access-control initialization calls during app startup by consolidating authenticated actor initialization behind the guarded path (so `_initializeAccessControlWithSecret` is not triggered redundantly by multiple actor hooks).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/ProfileSetup.tsx",
-          "frontend/src/hooks/useActorInitGuard.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/ProfileSetup.tsx",
-          "frontend/src/hooks/useActorInitGuard.ts"
+          "frontend/src/index.css",
+          "frontend/src/pages/MessagesInbox.tsx",
+          "frontend/src/pages/MessagesThread.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/AuthResolutionErrorScreen.tsx",
-    "frontend/src/components/ProfileSetup.tsx",
-    "frontend/src/hooks/useActorInitGuard.ts",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/ItemCard.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/utils/icRejectionErrors.ts",
-    "frontend/src/utils/sanitizeErrorMessage.ts",
+    "frontend/src/index.css",
+    "frontend/src/pages/BuySection.tsx",
+    "frontend/src/pages/Contact.tsx",
+    "frontend/src/pages/LostFoundSection.tsx",
+    "frontend/src/pages/MessagesInbox.tsx",
+    "frontend/src/pages/MessagesThread.tsx",
+    "frontend/src/pages/RentSection.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

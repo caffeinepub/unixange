@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { useGetBuySellItems, useDeleteItem } from '@/hooks/useQueries';
+import { useNavigate } from '@tanstack/react-router';
+import { useGetBuySellItems, useDeleteItem, useStartConversation } from '@/hooks/useQueries';
 import ItemCard from '@/components/ItemCard';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
+import LoginModal from '@/components/LoginModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,12 +14,15 @@ import { useInternetIdentity } from '@/hooks/useInternetIdentity';
 import { toast } from 'sonner';
 
 export default function BuySection() {
+  const navigate = useNavigate();
   const { data: items, isLoading, error, refetch, isRefetching } = useGetBuySellItems();
   const { identity } = useInternetIdentity();
   const deleteItem = useDeleteItem();
+  const startConversation = useStartConversation();
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [maxPrice, setMaxPrice] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: bigint; title: string } | null>(null);
 
   const handleDeleteClick = (id: bigint, title: string) => {
@@ -35,6 +40,24 @@ export default function BuySection() {
       setItemToDelete(null);
     } catch (error: any) {
       toast.error(error.message || 'Failed to delete item');
+    }
+  };
+
+  const handleContactSeller = async (sellerId: any, itemTitle: string) => {
+    if (!identity) {
+      setLoginModalOpen(true);
+      return;
+    }
+
+    try {
+      const conversationId = await startConversation.mutateAsync({
+        listingOwnerId: sellerId,
+        initialMessage: `Hi, I'm interested in "${itemTitle}"`,
+      });
+      toast.success('Conversation started');
+      navigate({ to: `/messages/${conversationId}` });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to start conversation');
     }
   };
 
@@ -145,6 +168,7 @@ export default function BuySection() {
                 image={item.images[0]}
                 showActions={!isOwner(item.sellerId)}
                 showDelete={isOwner(item.sellerId)}
+                onMessageSeller={() => handleContactSeller(item.sellerId, item.title)}
                 onDelete={() => handleDeleteClick(item.id, item.title)}
               />
             ))}
@@ -163,6 +187,7 @@ export default function BuySection() {
           isDeleting={deleteItem.isPending}
           itemTitle={itemToDelete?.title}
         />
+        <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
       </div>
     </div>
   );

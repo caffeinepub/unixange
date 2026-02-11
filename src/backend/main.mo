@@ -12,7 +12,9 @@ import MixinAuthorization "authorization/MixinAuthorization";
 import Runtime "mo:core/Runtime";
 import Char "mo:core/Char";
 import Set "mo:core/Set";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   // ========== Type Definitions ==========
 
@@ -88,22 +90,47 @@ actor {
     // Add more fields as needed
   };
 
-  // ========= Initialization =========
+  // ========= Chat Type Definitions =========
+
+  public type Message = {
+    id : Nat;
+    sender : UserId;
+    content : Text;
+  };
+
+  public type ChatConversation = {
+    participants : (UserId, UserId); // (customer, listingOwner)
+    messages : [Message];
+    isOpen : Bool;
+  };
+
+  public type NewMessage = {
+    sender : UserId;
+    content : Text;
+  };
+
+  public type NewConversation = {
+    participants : (UserId, UserId);
+    message : NewMessage;
+  };
+
+  // ========= Internal State =========
 
   let adminEmailWhitelist = Set.empty<Text>();
   adminEmailWhitelist.add("aaryan123cse@gmail.com");
   adminEmailWhitelist.add("admin-balu@campusmarket.in");
   adminEmailWhitelist.add("pkamil13@gmail.com");
 
-  // ========== Actor State ==========
-
   var nextItemId = 0;
   var nextLostFoundItemId = 0;
+  var nextMessageId = 0;
 
   let allItems = Map.empty<ItemId, ItemType>();
   let lostFoundItems = Map.empty<ItemId, LostFoundItem>();
   let userProfiles = Map.empty<UserId, UserProfile>();
   let onboardingAnswers = Map.empty<UserId, OnboardingAnswers>();
+
+  let chatState = Map.empty<Text, ChatConversation>();
 
   include MixinStorage();
 
@@ -121,6 +148,12 @@ actor {
   func getNextLostFoundItemId() : ItemId {
     let id = nextLostFoundItemId;
     nextLostFoundItemId += 1;
+    id;
+  };
+
+  func getNextMessageId() : Nat {
+    let id = nextMessageId;
+    nextMessageId += 1;
     id;
   };
 
@@ -146,26 +179,159 @@ actor {
   };
 
   func hasValidCampusMembership(caller : Principal) : Bool {
-    // Admins bypass campus membership check
     if (AccessControl.isAdmin(accessControlState, caller)) {
       return true;
     };
 
-    // Check if user has a profile with valid university email
     switch (userProfiles.get(caller)) {
       case (?profile) {
         validateUniversityEmail(profile.email) or isAdminEmail(profile.email);
       };
-      case (null) {
-        false;
+      case (null) { false };
+    };
+  };
+
+  func getConversationId({ caller } : { caller : Principal }, participants : (UserId, UserId)) : Text {
+    let (participant1, participant2) = if (caller.toText() < participants.1.toText()) {
+      (caller, participants.1);
+    } else {
+      (participants.1, caller);
+    };
+    participant1.toText() # "|" # participant2.toText();
+  };
+
+  // ========== Chat Functions ==========
+
+  public shared ({ caller }) func startConversation(newConversation : NewConversation) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can start conversations");
+    };
+
+    // Verify caller is one of the participants
+    let (participant1, participant2) = newConversation.participants;
+    if (caller != participant1 and caller != participant2) {
+      Runtime.trap("Unauthorized: Can only start conversations you are part of");
+    };
+
+    // Verify sender matches caller
+    if (newConversation.message.sender != caller) {
+      Runtime.trap("Unauthorized: Cannot send messages as another user");
+    };
+
+    let conversationId = getConversationId({ caller }, newConversation.participants);
+    let initialMessage : Message = {
+      id = getNextMessageId();
+      sender = caller; // Use caller instead of message.sender
+      content = newConversation.message.content;
+    };
+
+    let newConversationData : ChatConversation = {
+      participants = newConversation.participants;
+      messages = [initialMessage];
+      isOpen = true;
+    };
+
+    chatState.add(conversationId, newConversationData);
+  };
+
+  func isParticipant(authority : UserId, conversation : ChatConversation) : Bool {
+    let (participant1, participant2) = conversation.participants;
+    authority == participant1 or authority == participant2;
+  };
+
+  public shared ({ caller }) func sendMessage(conversationId : Text, message : NewMessage) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can send messages");
+    };
+
+    // Verify sender matches caller
+    if (message.sender != caller) {
+      Runtime.trap("Unauthorized: Cannot send messages as another user");
+    };
+
+    switch (chatState.get(conversationId)) {
+      case (?conversation) {
+        if (not isParticipant(caller, conversation)) {
+          Runtime.trap("Unauthorized: Can only interact with your own conversations");
+        };
+
+        let newMessage : Message = {
+          id = getNextMessageId();
+          sender = caller; // Use caller instead of message.sender
+          content = message.content;
+        };
+
+        let updatedConversation : ChatConversation = {
+          conversation with
+          messages = conversation.messages.concat([newMessage]);
+        };
+        chatState.add(conversationId, updatedConversation);
       };
+      case (null) { Runtime.trap("Conversation not found") };
+    };
+  };
+
+  public query ({ caller }) func getMessages(conversationId : Text, offset : Nat, limit : Nat) : async [Message] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access messages");
+    };
+
+    switch (chatState.get(conversationId)) {
+      case (?conversation) {
+        if (not isParticipant(caller, conversation)) {
+          Runtime.trap("Unauthorized: Can only access your own conversations");
+        };
+        if (offset >= conversation.messages.size()) {
+          return [];
+        };
+        let end = Nat.min(offset + limit, conversation.messages.size());
+        conversation.messages.sliceToArray(offset, end);
+      };
+      case (null) { Runtime.trap("Conversation not found") };
+    };
+  };
+
+  public shared ({ caller }) func closeConversation(conversationId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can close conversations");
+    };
+
+    switch (chatState.get(conversationId)) {
+      case (?conversation) {
+        if (not isParticipant(caller, conversation)) {
+          Runtime.trap("Unauthorized: Can only interact with your own conversations");
+        };
+        let updatedConversation : ChatConversation = {
+          conversation with isOpen = false;
+        };
+        chatState.add(conversationId, updatedConversation);
+      };
+      case (null) { Runtime.trap("Conversation not found") };
+    };
+  };
+
+  public shared ({ caller }) func reopenConversation(conversationId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can reopen conversations");
+    };
+
+    switch (chatState.get(conversationId)) {
+      case (?conversation) {
+        if (not isParticipant(caller, conversation)) {
+          Runtime.trap("Unauthorized: Can only interact with your own conversations");
+        };
+        let updatedConversation : ChatConversation = {
+          conversation with isOpen = true;
+        };
+        chatState.add(conversationId, updatedConversation);
+      };
+      case (null) { Runtime.trap("Conversation not found") };
     };
   };
 
   // ========== User Profile Functions ==========
 
   public query ({ caller }) func getUserProfile(user : UserId) : async ?UserProfile {
-    // Enforce campus membership check before allowing profile access
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to access profiles");
     };
@@ -181,9 +347,6 @@ actor {
       Runtime.trap("Unauthorized: Only users can access profiles");
     };
 
-    // Note: This function is allowed without campus membership check
-    // because users need to retrieve their profile (if exists) to know
-    // whether they need to create one with valid email
     userProfiles.get(caller);
   };
 
@@ -192,7 +355,6 @@ actor {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
 
-    // Validate university email domain (case-insensitive) or admin email
     if (not validateUniversityEmail(profile.email) and not isAdminEmail(profile.email)) {
       Runtime.trap("Unauthorized: Email must be from @jainuniversity.ac.in domain or admin email");
     };
@@ -205,12 +367,10 @@ actor {
       Runtime.trap("Unauthorized: Only users can create profiles");
     };
 
-    // Validate university email domain (case-insensitive) or admin email
     if (not validateUniversityEmail(profile.email) and not isAdminEmail(profile.email)) {
       Runtime.trap("Unauthorized: Email must be from @jainuniversity.ac.in domain or admin email");
     };
 
-    // Store profile and initialize empty onboarding answers
     userProfiles.add(caller, profile);
     onboardingAnswers.add(caller, {
       year = "";
@@ -232,7 +392,6 @@ actor {
   };
 
   public query ({ caller }) func toMinimalItemList() : async [MinimalItem] {
-    // Require valid campus membership to view items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to view items");
     };
@@ -274,7 +433,6 @@ actor {
   // ========== Buy/Sell Section Functions ==========
 
   public query ({ caller }) func getBuySellItems() : async [BuySellItem] {
-    // Require valid campus membership to view items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to view items");
     };
@@ -290,7 +448,6 @@ actor {
   };
 
   public query ({ caller }) func getBuySellItem(itemId : ItemId) : async ?BuySellItem {
-    // Require valid campus membership to view items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to view items");
     };
@@ -306,7 +463,6 @@ actor {
       Runtime.trap("Unauthorized: Only users can post items for sale");
     };
 
-    // Require valid campus membership to post items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to post items");
     };
@@ -329,7 +485,6 @@ actor {
   };
 
   public query ({ caller }) func filterBuySellItemsByCategory(category : Text) : async [BuySellItem] {
-    // Require valid campus membership to view items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to view items");
     };
@@ -345,7 +500,6 @@ actor {
   };
 
   public query ({ caller }) func filterBuySellItemsByPriceRange(minPrice : Rupee, maxPrice : Rupee) : async [BuySellItem] {
-    // Require valid campus membership to view items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to view items");
     };
@@ -363,7 +517,6 @@ actor {
   // ========== Rent Section Functions ==========
 
   public query ({ caller }) func getRentalItems() : async [RentalItem] {
-    // Require valid campus membership to view items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to view items");
     };
@@ -376,7 +529,6 @@ actor {
   };
 
   public query ({ caller }) func getRentalItem(itemId : ItemId) : async ?RentalItem {
-    // Require valid campus membership to view items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to view items");
     };
@@ -392,7 +544,6 @@ actor {
       Runtime.trap("Unauthorized: Only users can list items for rent");
     };
 
-    // Require valid campus membership to post items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to list items");
     };
@@ -417,7 +568,6 @@ actor {
   // ========== Lost & Found Section Functions ==========
 
   public query ({ caller }) func getLostFoundItems() : async [LostFoundItem] {
-    // Require valid campus membership to view items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to view items");
     };
@@ -426,7 +576,6 @@ actor {
   };
 
   public query ({ caller }) func getLostFoundItem(itemId : ItemId) : async ?LostFoundItem {
-    // Require valid campus membership to view items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to view items");
     };
@@ -439,7 +588,6 @@ actor {
       Runtime.trap("Unauthorized: Only users can post lost items");
     };
 
-    // Require valid campus membership to post items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to post items");
     };
@@ -464,7 +612,6 @@ actor {
       Runtime.trap("Unauthorized: Only users can post found items");
     };
 
-    // Require valid campus membership to post items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to post items");
     };
@@ -487,7 +634,6 @@ actor {
   // ========== Delete Item Functions ==========
 
   public shared ({ caller }) func deleteItem(itemId : ItemId) : async () {
-    // Require valid campus membership for delete operations
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to delete items");
     };
@@ -511,7 +657,6 @@ actor {
   };
 
   public shared ({ caller }) func deleteLostFoundItem(itemId : ItemId) : async () {
-    // Require valid campus membership for delete operations
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to delete items");
     };
@@ -530,7 +675,6 @@ actor {
   // ========== Mark Item as Recovered ==========
 
   public shared ({ caller }) func markAsRecovered(itemId : ItemId) : async () {
-    // Require valid campus membership for recovery operations
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to mark items as recovered");
     };
@@ -572,7 +716,6 @@ actor {
       Runtime.trap("Unauthorized: Only users can add items");
     };
 
-    // Require valid campus membership to add items
     if (not hasValidCampusMembership(caller)) {
       Runtime.trap("Unauthorized: Valid university email required to add items");
     };

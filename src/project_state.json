@@ -1,51 +1,81 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "App is evolving into a sell/rent marketplace-style project where users can upload listings (via a '+' flow) and customers can contact listing owners; next build target is an in-app chat contact option (message polling) with possible future dashboard/admin and UI animations.",
   "architectural_notes": [
-    "Backend call to canister method _initializeAccessControlWithSecret can fail if target IC canister is stopped (IC0508 non_replicated_rejection)."
+    "Implement chat as non-real-time message polling (Internet Computer compatible)."
   ],
-  "known_issues": [
-    "Console error IC0508: Canister acg2y-eiaaa-aaaab-aan7a-cai is stopped, causing initialization/access control setup to fail and UI to show generic 'Something went wrong'.",
-    "Warning: createActor called with both agent and agentOptions; agentOptions ignored."
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-detect-the-specific-internet-computer-rejection-case-where-the-backend-canister-is-stopped-e-g-reject-message-contains-is-stopped-error-code-ic0508-during-authenticated-actor-initialization-including-initializeaccesscontrolwithsecret-and-surface-a-clear-user-friendly-error-message-in-the-ui-instead-of-the-generic-something-went-wrong",
-      "title": "Detect the specific Internet Computer rejection case where the backend canister is stopped (e.g., reject_message contains \"is stopped\" / error_code \"IC0508\") during authenticated actor initialization (including `_initializeAccessControlWithSecret`) and surface a clear, user-friendly error message in the UI instead of the generic \"Something Went Wrong\".",
+      "id": "feature-add-a-messages-ui-in-the-frontend-an-inbox-of-conversations-and-a-conversation-thread-screen-that-polls-for-new-messages-and-allows-sending-messages",
+      "title": "Add a messages UI in the frontend: an inbox of conversations and a conversation thread screen that polls for new messages and allows sending messages.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-existing-per-item-contact-action-to-open-the-in-app-chat-with-the-correct-listing-owner-creating-the-conversation-if-needed",
+      "title": "Wire the existing per-item “Contact” action to open the in-app chat with the correct listing owner, creating the conversation if needed.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-existing-static-contact-page-to-clarify-it-is-for-support-feedback-and-add-a-clear-entry-point-to-the-new-in-app-messages-inbox-for-contacting-sellers-owners",
+      "title": "Update the existing static Contact page to clarify it is for support/feedback, and add a clear entry point to the new in-app messages inbox for contacting sellers/owners.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-cohesive-visual-theme-across-the-new-chat-screens-so-they-match-the-marketplace-ui-using-a-distinct-style-that-is-consistent-throughout-the-messages-experience",
+      "title": "Apply a cohesive visual theme across the new chat screens so they match the marketplace UI, using a distinct style that is consistent throughout the messages experience.",
       "reqIds": [
         "REQ-5"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-update-error-sanitization-formatting-so-that-stopped-canister-errors-are-categorized-and-converted-into-stable-english-user-facing-text-while-still-logging-the-raw-error-to-the-console-for-debugging",
-      "title": "Update error sanitization / formatting so that stopped-canister errors are categorized and converted into stable English user-facing text (while still logging the raw error to the console for debugging).",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-eliminate-the-runtime-warning-detected-both-agent-and-agentoptions-passed-to-createactor-ignoring-agentoptions-and-proceeding-with-the-provided-agent-by-ensuring-actor-creation-only-passes-one-of-agent-or-agentoptions-not-both-when-calling-createactorwithconfig",
-      "title": "Eliminate the runtime warning \"Detected both agent and agentOptions passed to createActor. Ignoring agentOptions and proceeding with the provided agent.\" by ensuring actor creation only passes one of `agent` or `agentOptions` (not both) when calling `createActorWithConfig`.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-prevent-duplicated-access-control-initialization-calls-during-app-startup-by-consolidating-authenticated-actor-initialization-behind-the-guarded-path-so-initializeaccesscontrolwithsecret-is-not-triggered-redundantly-by-multiple-actor-hooks",
-      "title": "Prevent duplicated access-control initialization calls during app startup by consolidating authenticated actor initialization behind the guarded path (so `_initializeAccessControlWithSecret` is not triggered redundantly by multiple actor hooks).",
-      "reqIds": [
-        "REQ-8"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix profile load failure when backend canister is stopped and remove createActor agentOptions warning",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Add chat-based 'Contact' option so customers can message the product/listing owner inside the app",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Add contact/phone number field in the sell/rent item upload flow so customers can contact the user easily",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Dashboard/admin page feature (user interested in #6)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Add animations / visual theme improvements (user interested in #7)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Implement backend support for an in-app chat that lets a customer start (or reopen) a conversation with a listing owner and exchange messages using non-real-time polling.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Add in-app contact chat between customers and listing owners (polling-based)",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

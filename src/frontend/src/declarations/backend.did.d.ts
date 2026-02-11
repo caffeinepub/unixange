@@ -34,6 +34,11 @@ export interface LostFoundItem {
   'location' : string,
   'images' : Array<Uint8Array>,
 }
+export interface Message {
+  'id' : bigint,
+  'content' : string,
+  'sender' : UserId,
+}
 export interface MinimalItem {
   'id' : ItemId,
   'title' : string,
@@ -44,6 +49,11 @@ export interface MinimalItem {
   'dailyPrice' : [] | [Rupee],
   'price' : [] | [Rupee],
 }
+export interface NewConversation {
+  'participants' : [UserId, UserId],
+  'message' : NewMessage,
+}
+export interface NewMessage { 'content' : string, 'sender' : UserId }
 export interface OnboardingAnswers {
   'city' : string,
   'year' : string,
@@ -131,6 +141,7 @@ export interface _SERVICE {
     undefined
   >,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'closeConversation' : ActorMethod<[string], undefined>,
   'createUserProfile' : ActorMethod<[UserProfile], undefined>,
   'deleteItem' : ActorMethod<[ItemId], undefined>,
   'deleteLostFoundItem' : ActorMethod<[ItemId], undefined>,
@@ -145,6 +156,7 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getLostFoundItem' : ActorMethod<[ItemId], [] | [LostFoundItem]>,
   'getLostFoundItems' : ActorMethod<[], Array<LostFoundItem>>,
+  'getMessages' : ActorMethod<[string, bigint, bigint], Array<Message>>,
   'getOnboardingAnswers' : ActorMethod<[], [] | [OnboardingAnswers]>,
   'getRentalItem' : ActorMethod<[ItemId], [] | [RentalItem]>,
   'getRentalItems' : ActorMethod<[], Array<RentalItem>>,
@@ -171,8 +183,11 @@ export interface _SERVICE {
     [string, string, string, Array<Uint8Array>, Array<ExternalBlob>],
     undefined
   >,
+  'reopenConversation' : ActorMethod<[string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'sendMessage' : ActorMethod<[string, NewMessage], undefined>,
   'setOnboardingAnswers' : ActorMethod<[OnboardingAnswers], undefined>,
+  'startConversation' : ActorMethod<[NewConversation], undefined>,
   'toMinimalItemList' : ActorMethod<[], Array<MinimalItem>>,
 }
 export declare const idlService: IDL.ServiceClass;
