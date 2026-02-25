@@ -1,0 +1,118 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-25T10:42:56.511Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 3,
+    "implemented": 3,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "Configure Tailwind CSS to use 'class' dark mode strategy and ensure all existing color tokens and utility classes have appropriate dark mode variants defined in the CSS theme variables (frontend/src/index.css and frontend/tailwind.config.js).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/tailwind.config.js",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/tailwind.config.js",
+          "frontend/src/index.css"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Create a ThemeProvider component (or update the existing one in App.tsx) that reads the user's system preference via the window.matchMedia('(prefers-color-scheme: dark)') API on initial load, applies the 'dark' class to the document root element accordingly, and listens for system preference changes in real-time to update the theme automatically.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Update all page and component files (Header, Footer, Homepage, BuySection, RentSection, SellSection, LostFoundSection, About, Contact, Privacy, Terms, ItemCard, AddItemModal, DeleteConfirmationModal, LoginModal, ProfileSetup, ProfileAvatarMenu, FloatingAddButton, AuthResolutionErrorScreen) to apply Tailwind dark mode variants (dark:) so backgrounds, text, borders, cards, modals, and inputs render correctly in both light and dark themes.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/Footer.tsx",
+          "frontend/src/pages/Homepage.tsx",
+          "frontend/src/pages/BuySection.tsx",
+          "frontend/src/pages/RentSection.tsx",
+          "frontend/src/pages/SellSection.tsx",
+          "frontend/src/pages/LostFoundSection.tsx",
+          "frontend/src/pages/About.tsx",
+          "frontend/src/pages/Contact.tsx",
+          "frontend/src/pages/Privacy.tsx",
+          "frontend/src/pages/Terms.tsx",
+          "frontend/src/components/ItemCard.tsx",
+          "frontend/src/components/AddItemModal.tsx",
+          "frontend/src/components/DeleteConfirmationModal.tsx",
+          "frontend/src/components/LoginModal.tsx",
+          "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/components/ProfileAvatarMenu.tsx",
+          "frontend/src/components/FloatingAddButton.tsx",
+          "frontend/src/components/AuthResolutionErrorScreen.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/Footer.tsx",
+          "frontend/src/pages/Homepage.tsx",
+          "frontend/src/pages/BuySection.tsx",
+          "frontend/src/pages/RentSection.tsx",
+          "frontend/src/pages/SellSection.tsx",
+          "frontend/src/pages/LostFoundSection.tsx",
+          "frontend/src/pages/About.tsx",
+          "frontend/src/pages/Contact.tsx",
+          "frontend/src/pages/Terms.tsx",
+          "frontend/src/components/ItemCard.tsx",
+          "frontend/src/components/AddItemModal.tsx",
+          "frontend/src/components/DeleteConfirmationModal.tsx",
+          "frontend/src/components/LoginModal.tsx",
+          "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/components/ProfileAvatarMenu.tsx",
+          "frontend/src/components/FloatingAddButton.tsx",
+          "frontend/src/components/AuthResolutionErrorScreen.tsx"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "caffeine.lock.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/components/AddItemModal.tsx",
+    "frontend/src/components/AuthResolutionErrorScreen.tsx",
+    "frontend/src/components/DeleteConfirmationModal.tsx",
+    "frontend/src/components/FloatingAddButton.tsx",
+    "frontend/src/components/Footer.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/ItemCard.tsx",
+    "frontend/src/components/LoginModal.tsx",
+    "frontend/src/components/ProfileAvatarMenu.tsx",
+    "frontend/src/components/ProfileSetup.tsx",
+    "frontend/src/config.ts",
+    "frontend/src/index.css",
+    "frontend/src/pages/About.tsx",
+    "frontend/src/pages/BuySection.tsx",
+    "frontend/src/pages/Contact.tsx",
+    "frontend/src/pages/Homepage.tsx",
+    "frontend/src/pages/LostFoundSection.tsx",
+    "frontend/src/pages/RentSection.tsx",
+    "frontend/src/pages/SellSection.tsx",
+    "frontend/src/pages/Terms.tsx",
+    "frontend/tailwind.config.js",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

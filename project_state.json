@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "App with beige and white interface (Version 44), now adding system-based dark/light mode theme switching.",
+  "architectural_notes": [
+    "Theme uses Tailwind CSS dark mode with prefers-color-scheme media query, updating in real-time on OS theme change"
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-configure-tailwind-css-to-use-class-dark-mode-strategy-and-ensure-all-existing-color-tokens-and-utility-classes-have-appropriate-dark-mode-variants-defined-in-the-css-theme-variables-frontend-src-index-css-and-frontend-tailwind-config-js",
+      "title": "Configure Tailwind CSS to use 'class' dark mode strategy and ensure all existing color tokens and utility classes have appropriate dark mode variants defined in the CSS theme variables (frontend/src/index.css and frontend/tailwind.config.js).",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-themeprovider-component-or-update-the-existing-one-in-app-tsx-that-reads-the-user-s-system-preference-via-the-window-matchmedia-prefers-color-scheme-dark-api-on-initial-load-applies-the-dark-class-to-the-document-root-element-accordingly-and-listens-for-system-preference-changes-in-real-time-to-update-the-theme-automatically",
+      "title": "Create a ThemeProvider component (or update the existing one in App.tsx) that reads the user's system preference via the window.matchMedia('(prefers-color-scheme: dark)') API on initial load, applies the 'dark' class to the document root element accordingly, and listens for system preference changes in real-time to update the theme automatically.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-all-page-and-component-files-header-footer-homepage-buysection-rentsection-sellsection-lostfoundsection-about-contact-privacy-terms-itemcard-additemmodal-deleteconfirmationmodal-loginmodal-profilesetup-profileavatarmenu-floatingaddbutton-authresolutionerrorscreen-to-apply-tailwind-dark-mode-variants-dark-so-backgrounds-text-borders-cards-modals-and-inputs-render-correctly-in-both-light-and-dark-themes",
+      "title": "Update all page and component files (Header, Footer, Homepage, BuySection, RentSection, SellSection, LostFoundSection, About, Contact, Privacy, Terms, ItemCard, AddItemModal, DeleteConfirmationModal, LoginModal, ProfileSetup, ProfileAvatarMenu, FloatingAddButton, AuthResolutionErrorScreen) to apply Tailwind dark mode variants (dark:) so backgrounds, text, borders, cards, modals, and inputs render correctly in both light and dark themes.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Dark/light mode theme that automatically switches based on system preference (prefers-color-scheme)",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Add system-based dark/light mode theme switching",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

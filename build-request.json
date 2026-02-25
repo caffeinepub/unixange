@@ -1,0 +1,78 @@
+{
+  "kind": "build_request",
+  "title": "Add system-based dark/light mode theme switching",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Configure Tailwind CSS to use 'class' dark mode strategy and ensure all existing color tokens and utility classes have appropriate dark mode variants defined in the CSS theme variables (frontend/src/index.css and frontend/tailwind.config.js).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-14"
+        ],
+        "quotes": [
+          "lets create a dark mode and light mode theme which will switch according to the system"
+        ]
+      },
+      "acceptanceCriteria": [
+        "tailwind.config.js has darkMode set to 'class'",
+        "CSS variables for dark mode (colors, backgrounds, borders, text) are defined under a .dark selector in index.css",
+        "All existing beige/white light theme colors have corresponding dark mode counterparts"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Create a ThemeProvider component (or update the existing one in App.tsx) that reads the user's system preference via the window.matchMedia('(prefers-color-scheme: dark)') API on initial load, applies the 'dark' class to the document root element accordingly, and listens for system preference changes in real-time to update the theme automatically.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-14"
+        ],
+        "quotes": [
+          "lets create a dark mode and light mode theme which will switch according to the system"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On page load, if the OS is set to dark mode, the 'dark' class is applied to the <html> element",
+        "On page load, if the OS is set to light mode, no 'dark' class is applied",
+        "When the user changes their OS theme while the app is open, the theme updates in real-time without a page reload",
+        "ThemeProvider wraps the entire app in App.tsx"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update all page and component files (Header, Footer, Homepage, BuySection, RentSection, SellSection, LostFoundSection, About, Contact, Privacy, Terms, ItemCard, AddItemModal, DeleteConfirmationModal, LoginModal, ProfileSetup, ProfileAvatarMenu, FloatingAddButton, AuthResolutionErrorScreen) to apply Tailwind dark mode variants (dark:) so backgrounds, text, borders, cards, modals, and inputs render correctly in both light and dark themes.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-14"
+        ],
+        "quotes": [
+          "lets create a dark mode and light mode theme which will switch according to the system"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All pages and components render legible text and appropriate contrast in dark mode",
+        "Backgrounds switch from beige/white to dark equivalents in dark mode",
+        "Modals, cards, inputs, and buttons all have correct dark mode styling",
+        "No hard-coded light-only color classes remain without a dark: counterpart where needed"
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
+    "Theme switching must be purely system-driven (prefers-color-scheme); do not add a manual toggle button unless the user requests it",
+    "Preserve the existing beige and white light mode design — dark mode should complement it, not replace it"
+  ],
+  "nonGoals": [
+    "Manual dark/light mode toggle button or user-controlled theme preference",
+    "Persisting theme choice to localStorage or backend",
+    "Any changes to backend logic or data models",
+    "Changes to authentication or identity flows"
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

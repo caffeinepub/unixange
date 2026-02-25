@@ -1,0 +1,83 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-configure-tailwind-css-to-use-class-dark-mode-strategy-and-ensure-all-existing-color-tokens-and-utility-classes-have-appropriate-dark-mode-variants-defined-in-the-css-theme-variables-frontend-src-index-css-and-frontend-tailwind-config-js",
+      "featureTitle": "Configure Tailwind CSS to use 'class' dark mode strategy and ensure all existing color tokens and utility classes have appropriate dark mode variants defined in the CSS theme variables (frontend/src/index.css and frontend/tailwind.config.js).",
+      "files": [
+        "frontend/src/index.css",
+        "frontend/tailwind.config.js"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-themeprovider-component-or-update-the-existing-one-in-app-tsx-that-reads-the-user-s-system-preference-via-the-window-matchmedia-prefers-color-scheme-dark-api-on-initial-load-applies-the-dark-class-to-the-document-root-element-accordingly-and-listens-for-system-preference-changes-in-real-time-to-update-the-theme-automatically",
+      "featureTitle": "Create a ThemeProvider component (or update the existing one in App.tsx) that reads the user's system preference via the window.matchMedia('(prefers-color-scheme: dark)') API on initial load, applies the 'dark' class to the document root element accordingly, and listens for system preference changes in real-time to update the theme automatically.",
+      "files": [
+        "frontend/src/App.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-all-page-and-component-files-header-footer-homepage-buysection-rentsection-sellsection-lostfoundsection-about-contact-privacy-terms-itemcard-additemmodal-deleteconfirmationmodal-loginmodal-profilesetup-profileavatarmenu-floatingaddbutton-authresolutionerrorscreen-to-apply-tailwind-dark-mode-variants-dark-so-backgrounds-text-borders-cards-modals-and-inputs-render-correctly-in-both-light-and-dark-themes",
+      "featureTitle": "Update all page and component files (Header, Footer, Homepage, BuySection, RentSection, SellSection, LostFoundSection, About, Contact, Privacy, Terms, ItemCard, AddItemModal, DeleteConfirmationModal, LoginModal, ProfileSetup, ProfileAvatarMenu, FloatingAddButton, AuthResolutionErrorScreen) to apply Tailwind dark mode variants (dark:) so backgrounds, text, borders, cards, modals, and inputs render correctly in both light and dark themes.",
+      "files": [
+        "frontend/src/components/AddItemModal.tsx",
+        "frontend/src/components/AuthResolutionErrorScreen.tsx",
+        "frontend/src/components/DeleteConfirmationModal.tsx",
+        "frontend/src/components/FloatingAddButton.tsx",
+        "frontend/src/components/Footer.tsx",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/ItemCard.tsx",
+        "frontend/src/components/LoginModal.tsx",
+        "frontend/src/components/ProfileAvatarMenu.tsx",
+        "frontend/src/components/ProfileSetup.tsx",
+        "frontend/src/pages/About.tsx",
+        "frontend/src/pages/BuySection.tsx",
+        "frontend/src/pages/Contact.tsx",
+        "frontend/src/pages/Homepage.tsx",
+        "frontend/src/pages/LostFoundSection.tsx",
+        "frontend/src/pages/RentSection.tsx",
+        "frontend/src/pages/SellSection.tsx",
+        "frontend/src/pages/Terms.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

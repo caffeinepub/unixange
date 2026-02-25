@@ -1,0 +1,152 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Add system-based dark/light mode theme switching",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Configure Tailwind CSS for class-based dark mode and define comprehensive dark mode CSS variables",
+      "acceptanceCriteria": [
+        "tailwind.config.js has darkMode set to 'class'",
+        "CSS variables for dark mode (colors, backgrounds, borders, text) are defined under a .dark selector in index.css",
+        "All existing beige/white light theme colors have corresponding dark mode counterparts"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Set darkMode configuration to 'class' strategy to enable class-based dark mode toggling via the 'dark' class on the root element"
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add comprehensive dark mode CSS variables under a .dark selector, defining dark equivalents for all existing light theme colors (backgrounds, text, borders, cards, inputs, etc.) while preserving the existing beige/white light mode variables"
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Implement system preference-based theme detection and real-time updates in ThemeProvider",
+      "acceptanceCriteria": [
+        "On page load, if the OS is set to dark mode, the 'dark' class is applied to the <html> element",
+        "On page load, if the OS is set to light mode, no 'dark' class is applied",
+        "When the user changes their OS theme while the app is open, the theme updates in real-time without a page reload",
+        "ThemeProvider wraps the entire app in App.tsx"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Update the existing ThemeProvider component to read system preference via window.matchMedia('(prefers-color-scheme: dark)'), apply the 'dark' class to document.documentElement on initial load when dark mode is preferred, and add a change listener to update the theme in real-time when the OS preference changes"
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Apply Tailwind dark mode variants across all pages and components for comprehensive dark theme support",
+      "acceptanceCriteria": [
+        "All pages and components render legible text and appropriate contrast in dark mode",
+        "Backgrounds switch from beige/white to dark equivalents in dark mode",
+        "Modals, cards, inputs, and buttons all have correct dark mode styling",
+        "No hard-coded light-only color classes remain without a dark: counterpart where needed"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Add dark: variants to all background, text, border, and interactive elements (navigation links, search input, buttons) to ensure proper contrast and readability in dark mode"
+        },
+        {
+          "path": "frontend/src/components/Footer.tsx",
+          "operation": "modify",
+          "description": "Apply dark: variants to footer background, text colors, link hover states, and dividers to match the dark theme palette"
+        },
+        {
+          "path": "frontend/src/pages/Homepage.tsx",
+          "operation": "modify",
+          "description": "Add dark: variants to hero section, category cards, item previews, backgrounds, and text to ensure visual consistency in dark mode"
+        },
+        {
+          "path": "frontend/src/pages/BuySection.tsx",
+          "operation": "modify",
+          "description": "Apply dark: variants to page background, filter controls, item grid, and all text/border elements for proper dark mode rendering"
+        },
+        {
+          "path": "frontend/src/pages/RentSection.tsx",
+          "operation": "modify",
+          "description": "Add dark: variants to page layout, filtering UI, item listings, and interactive elements to support dark theme"
+        },
+        {
+          "path": "frontend/src/pages/SellSection.tsx",
+          "operation": "modify",
+          "description": "Apply dark: variants to page container, item cards, action buttons, and status indicators for consistent dark mode appearance"
+        },
+        {
+          "path": "frontend/src/pages/LostFoundSection.tsx",
+          "operation": "modify",
+          "description": "Add dark: variants to tabs, item listings, status badges, and form elements to ensure readability in dark mode"
+        },
+        {
+          "path": "frontend/src/pages/About.tsx",
+          "operation": "modify",
+          "description": "Apply dark: variants to page background, section headings, body text, and feature cards for proper dark theme support"
+        },
+        {
+          "path": "frontend/src/pages/Contact.tsx",
+          "operation": "modify",
+          "description": "Add dark: variants to contact cards, icons, text elements, and page background to maintain visual hierarchy in dark mode"
+        },
+        {
+          "path": "frontend/src/pages/Privacy.tsx",
+          "operation": "modify",
+          "description": "Apply dark: variants to policy content container, headings, paragraphs, and list items for legibility in dark mode"
+        },
+        {
+          "path": "frontend/src/pages/Terms.tsx",
+          "operation": "modify",
+          "description": "Add dark: variants to terms content sections, headings, body text, and emphasis elements to ensure contrast in dark mode"
+        },
+        {
+          "path": "frontend/src/components/ItemCard.tsx",
+          "operation": "modify",
+          "description": "Apply dark: variants to card backgrounds, borders, image containers, text elements, price displays, badges, and action buttons to ensure cards render correctly in both themes"
+        },
+        {
+          "path": "frontend/src/components/AddItemModal.tsx",
+          "operation": "modify",
+          "description": "Add dark: variants to modal backdrop, dialog container, form inputs, labels, buttons, error messages, and close controls for proper dark mode rendering"
+        },
+        {
+          "path": "frontend/src/components/DeleteConfirmationModal.tsx",
+          "operation": "modify",
+          "description": "Apply dark: variants to alert dialog background, title, description text, and action buttons to maintain readability in dark mode"
+        },
+        {
+          "path": "frontend/src/components/LoginModal.tsx",
+          "operation": "modify",
+          "description": "Add dark: variants to modal container, form elements, headings, body text, buttons, and loading states for consistent dark theme appearance"
+        },
+        {
+          "path": "frontend/src/components/ProfileSetup.tsx",
+          "operation": "modify",
+          "description": "Apply dark: variants to wizard container, step indicators, form inputs, labels, validation messages, and navigation buttons for dark mode support"
+        },
+        {
+          "path": "frontend/src/components/ProfileAvatarMenu.tsx",
+          "operation": "modify",
+          "description": "Add dark: variants to dropdown menu background, menu items, user info section, hover states, and dividers to ensure proper contrast in dark mode"
+        },
+        {
+          "path": "frontend/src/components/FloatingAddButton.tsx",
+          "operation": "modify",
+          "description": "Apply dark: variants to button background, icon color, shadow, and hover state to maintain visibility and visual appeal in dark mode"
+        },
+        {
+          "path": "frontend/src/components/AuthResolutionErrorScreen.tsx",
+          "operation": "modify",
+          "description": "Add dark: variants to error screen background, heading, message text, buttons, and icons to ensure error states are clearly visible in dark mode"
+        }
+      ]
+    }
+  ]
+}
