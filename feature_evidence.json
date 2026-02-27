@@ -2,31 +2,17 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-configure-tailwind-css-to-use-class-dark-mode-strategy-and-ensure-all-existing-color-tokens-and-utility-classes-have-appropriate-dark-mode-variants-defined-in-the-css-theme-variables-frontend-src-index-css-and-frontend-tailwind-config-js",
-      "featureTitle": "Configure Tailwind CSS to use 'class' dark mode strategy and ensure all existing color tokens and utility classes have appropriate dark mode variants defined in the CSS theme variables (frontend/src/index.css and frontend/tailwind.config.js).",
+      "featureId": "feature-rebuild-the-full-react-frontend-for-unixange-with-all-pages-homepage-hero-category-browse-recent-listings-buy-section-sell-section-authenticated-user-s-listings-rent-section-lost-found-section-item-detail-page-about-contact-privacy-and-terms-pages",
+      "featureTitle": "Rebuild the full React frontend for UniXange with all pages: Homepage (hero + category browse + recent listings), Buy Section, Sell Section (authenticated user's listings), Rent Section, Lost & Found Section, Item Detail page, About, Contact, Privacy, and Terms pages.",
       "files": [
-        "frontend/src/index.css",
-        "frontend/tailwind.config.js"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "authorization@4.0.0",
-        "blob-storage@4.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-create-a-themeprovider-component-or-update-the-existing-one-in-app-tsx-that-reads-the-user-s-system-preference-via-the-window-matchmedia-prefers-color-scheme-dark-api-on-initial-load-applies-the-dark-class-to-the-document-root-element-accordingly-and-listens-for-system-preference-changes-in-real-time-to-update-the-theme-automatically",
-      "featureTitle": "Create a ThemeProvider component (or update the existing one in App.tsx) that reads the user's system preference via the window.matchMedia('(prefers-color-scheme: dark)') API on initial load, applies the 'dark' class to the document root element accordingly, and listens for system preference changes in real-time to update the theme automatically.",
-      "files": [
-        "frontend/src/App.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/components/Footer.tsx",
+        "frontend/src/pages/BuySection.tsx",
+        "frontend/src/pages/Homepage.tsx",
+        "frontend/src/pages/ItemDetail.tsx",
+        "frontend/src/pages/LostFoundSection.tsx",
+        "frontend/src/pages/RentSection.tsx",
+        "frontend/src/pages/SellSection.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -43,27 +29,14 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-all-page-and-component-files-header-footer-homepage-buysection-rentsection-sellsection-lostfoundsection-about-contact-privacy-terms-itemcard-additemmodal-deleteconfirmationmodal-loginmodal-profilesetup-profileavatarmenu-floatingaddbutton-authresolutionerrorscreen-to-apply-tailwind-dark-mode-variants-dark-so-backgrounds-text-borders-cards-modals-and-inputs-render-correctly-in-both-light-and-dark-themes",
-      "featureTitle": "Update all page and component files (Header, Footer, Homepage, BuySection, RentSection, SellSection, LostFoundSection, About, Contact, Privacy, Terms, ItemCard, AddItemModal, DeleteConfirmationModal, LoginModal, ProfileSetup, ProfileAvatarMenu, FloatingAddButton, AuthResolutionErrorScreen) to apply Tailwind dark mode variants (dark:) so backgrounds, text, borders, cards, modals, and inputs render correctly in both light and dark themes.",
+      "featureId": "feature-implement-internet-identity-authentication-gated-to-jainuniversity-ac-in-university-email-domain-with-a-login-modal-showing-login-signup-views-loading-state-and-access-denied-state-for-non-jain-university-accounts",
+      "featureTitle": "Implement Internet Identity authentication gated to @jainuniversity.ac.in university email domain, with a login modal showing login/signup views, loading state, and access-denied state for non-Jain University accounts.",
       "files": [
-        "frontend/src/components/AddItemModal.tsx",
-        "frontend/src/components/AuthResolutionErrorScreen.tsx",
-        "frontend/src/components/DeleteConfirmationModal.tsx",
-        "frontend/src/components/FloatingAddButton.tsx",
-        "frontend/src/components/Footer.tsx",
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/ItemCard.tsx",
         "frontend/src/components/LoginModal.tsx",
-        "frontend/src/components/ProfileAvatarMenu.tsx",
         "frontend/src/components/ProfileSetup.tsx",
-        "frontend/src/pages/About.tsx",
-        "frontend/src/pages/BuySection.tsx",
-        "frontend/src/pages/Contact.tsx",
-        "frontend/src/pages/Homepage.tsx",
-        "frontend/src/pages/LostFoundSection.tsx",
-        "frontend/src/pages/RentSection.tsx",
-        "frontend/src/pages/SellSection.tsx",
-        "frontend/src/pages/Terms.tsx"
+        "frontend/src/utils/adminEmailAllowlist.ts",
+        "frontend/src/utils/authIntent.ts",
+        "frontend/src/utils/universityEmail.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -76,6 +49,97 @@
       ],
       "testIds": [
         "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-apply-a-beige-and-black-olx-inspired-visual-theme-consistently-across-the-entire-app-including-css-custom-properties-tailwind-config-tokens-and-component-styles",
+      "featureTitle": "Apply a beige and black OLX-inspired visual theme consistently across the entire app, including CSS custom properties, Tailwind config tokens, and component styles.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/ItemCard.tsx",
+        "frontend/src/index.css",
+        "frontend/tailwind.config.js"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-profile-avatar-dropdown-in-the-header-that-displays-the-logged-in-user-s-name-email-and-university-and-provides-a-logout-action-the-avatar-must-be-visible-and-accessible-on-both-desktop-and-mobile-views",
+      "featureTitle": "Implement a profile avatar dropdown in the header that displays the logged-in user's name, email, and university, and provides a logout action. The avatar must be visible and accessible on both desktop and mobile views.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/ProfileAvatarMenu.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-an-add-item-modal-form-that-allows-authenticated-users-to-post-new-listings-across-all-categories-buy-sell-rent-lost-found-with-fields-for-title-description-with-ai-generated-description-support-category-condition-price-in-image-upload-and-whatsapp-contact-number",
+      "featureTitle": "Implement an Add Item modal form that allows authenticated users to post new listings across all categories (buy/sell/rent/lost/found) with fields for title, description (with AI-generated description support), category, condition, price in ₹, image upload, and WhatsApp contact number.",
+      "files": [
+        "frontend/src/components/AddItemModal.tsx",
+        "frontend/src/components/FloatingAddButton.tsx",
+        "frontend/src/pages/BuySection.tsx",
+        "frontend/src/pages/LostFoundSection.tsx",
+        "frontend/src/pages/RentSection.tsx",
+        "frontend/src/pages/SellSection.tsx",
+        "frontend/src/utils/aiDescriptionGenerator.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-basic-in-app-chat-feature-allowing-authenticated-users-to-message-each-other-about-listings",
+      "featureTitle": "Implement a basic in-app chat feature allowing authenticated users to message each other about listings.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/ItemDetail.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
       ],
       "confidence": "high"
     }

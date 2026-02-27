@@ -29,6 +29,7 @@ export interface BuySellItem {
     title: string;
     storageBlobs: Array<ExternalBlob>;
     description: string;
+    whatsappNumber: string;
     category: string;
     sellerId: UserId;
     price: Rupee;
@@ -43,6 +44,7 @@ export interface RentalItem {
     storageBlobs: Array<ExternalBlob>;
     description: string;
     available: boolean;
+    whatsappNumber: string;
     category: string;
     dailyPrice: Rupee;
     condition: string;
@@ -86,8 +88,9 @@ export enum Variant_rent_lostFound_buySell {
     buySell = "buySell"
 }
 export interface backendInterface {
-    addBuySellItem(title: string, description: string, price: Rupee, condition: string, category: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>, isFromSellSection: boolean): Promise<void>;
-    addItem(section: Variant_found_lost_rent_buySell, title: string, description: string, price: Rupee | null, dailyPrice: Rupee | null, condition: string | null, category: string | null, location: string | null, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
+    addBuySellItem(title: string, description: string, price: Rupee, condition: string, category: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>, isFromSellSection: boolean, whatsappNumber: string): Promise<void>;
+    addItem(section: Variant_found_lost_rent_buySell, title: string, description: string, price: Rupee | null, dailyPrice: Rupee | null, condition: string | null, category: string | null, location: string | null, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>, whatsappNumber: string | null): Promise<void>;
+    addNonUniversityPrincipal(principal: Principal): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createUserProfile(profile: UserProfile): Promise<void>;
     deleteItem(itemId: ItemId): Promise<void>;
@@ -100,15 +103,19 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getLostFoundItem(itemId: ItemId): Promise<LostFoundItem | null>;
     getLostFoundItems(): Promise<Array<LostFoundItem>>;
+    getNonUniversityPrincipals(): Promise<Array<Principal>>;
     getOnboardingAnswers(): Promise<OnboardingAnswers | null>;
     getRentalItem(itemId: ItemId): Promise<RentalItem | null>;
     getRentalItems(): Promise<Array<RentalItem>>;
     getUserProfile(user: UserId): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
-    listForRent(title: string, description: string, dailyPrice: Rupee, condition: string, category: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
+    isCampusMember(): Promise<boolean>;
+    isNonUniversityPrincipal(principal: Principal): Promise<boolean>;
+    listForRent(title: string, description: string, dailyPrice: Rupee, condition: string, category: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>, whatsappNumber: string): Promise<void>;
     markAsRecovered(itemId: ItemId): Promise<void>;
     postFoundItem(title: string, description: string, location: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
     postLostItem(title: string, description: string, location: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
+    removeNonUniversityPrincipal(principal: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setOnboardingAnswers(answers: OnboardingAnswers): Promise<void>;
     toMinimalItemList(): Promise<Array<MinimalItem>>;

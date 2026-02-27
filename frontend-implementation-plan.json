@@ -1,150 +1,244 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add system-based dark/light mode theme switching",
+  "title": "UniXange Campus Marketplace Frontend Rebuild",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Configure Tailwind CSS for class-based dark mode and define comprehensive dark mode CSS variables",
+      "id": "REQ-2",
+      "summary": "Rebuild the full React frontend with all pages: Homepage, Buy/Sell/Rent/Lost & Found sections, Item Detail, About, Contact, Privacy, and Terms pages",
       "acceptanceCriteria": [
-        "tailwind.config.js has darkMode set to 'class'",
-        "CSS variables for dark mode (colors, backgrounds, borders, text) are defined under a .dark selector in index.css",
-        "All existing beige/white light theme colors have corresponding dark mode counterparts"
+        "Homepage renders hero section with AI smart search and category cards",
+        "Buy, Sell, Rent, Lost & Found sections each display correct listings",
+        "Item Detail page shows image, metadata, and WhatsApp contact button",
+        "About, Contact, Privacy, Terms static pages render correctly",
+        "Footer displays on all pages with navigation links and UniXange branding"
       ],
       "file_operations": [
         {
-          "path": "frontend/tailwind.config.js",
+          "path": "frontend/src/pages/Homepage.tsx",
           "operation": "modify",
-          "description": "Set darkMode configuration to 'class' strategy to enable class-based dark mode toggling via the 'dark' class on the root element"
+          "description": "Ensure the homepage renders a hero section with AI smart search (using AISmartSearch component), category browse cards linking to Buy/Rent/Lost & Found sections, and recent listings from buy/sell and rental items fetched via useQueries hooks. Verify component usage instructions before implementing."
         },
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/pages/BuySection.tsx",
           "operation": "modify",
-          "description": "Add comprehensive dark mode CSS variables under a .dark selector, defining dark equivalents for all existing light theme colors (backgrounds, text, borders, cards, inputs, etc.) while preserving the existing beige/white light mode variables"
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Implement system preference-based theme detection and real-time updates in ThemeProvider",
-      "acceptanceCriteria": [
-        "On page load, if the OS is set to dark mode, the 'dark' class is applied to the <html> element",
-        "On page load, if the OS is set to light mode, no 'dark' class is applied",
-        "When the user changes their OS theme while the app is open, the theme updates in real-time without a page reload",
-        "ThemeProvider wraps the entire app in App.tsx"
-      ],
-      "file_operations": [
+          "description": "Verify that the Buy Section fetches and displays all buy/sell items (isFromSellSection=false) using the backend capability getBuySellItems. Ensure category filtering via URL params works correctly. Include AISmartSearch component integration for search functionality. Verify component usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/SellSection.tsx",
+          "operation": "modify",
+          "description": "Verify that the Sell Section displays only the authenticated user's listings (isFromSellSection=true) using backend capabilities. Ensure users can add new items via AddItemModal and delete owned items. Include auth and profile validation. Verify component usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/RentSection.tsx",
+          "operation": "modify",
+          "description": "Verify that the Rent Section fetches and displays rental items using the backend capability getRentalItems. Support category filtering via URL params, adding new rental items via AddItemModal, and deleting owned listings with auth checks. Verify component usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/LostFoundSection.tsx",
+          "operation": "modify",
+          "description": "Verify that the Lost & Found Section lists lost and found items in separate tabs, supports posting new lost/found reports with profile validation, and handles item deletion with DeleteConfirmationModal. Use backend capabilities getLostFoundItems, postLostItem, postFoundItem, and deleteLostFoundItem. Verify component usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/ItemDetail.tsx",
+          "operation": "modify",
+          "description": "Verify that the Item Detail page fetches and displays a single item (buy/sell, rental, or lost-found) using URL params and backend capabilities getBuySellItem, getRentalItem, or getLostFoundItem. Show image gallery, metadata, WhatsApp contact button, and AI-powered similar item recommendations using the aiRecommender utility. Verify component usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/About.tsx",
+          "operation": "modify",
+          "description": "Verify that the About page renders static content describing UniXange's mission, offerings, and call-to-action for new users. Ensure layout uses Footer component at the bottom."
+        },
+        {
+          "path": "frontend/src/pages/Contact.tsx",
+          "operation": "modify",
+          "description": "Verify that the Contact page displays email support, feedback, and help contact cards with response time information. Ensure layout uses Footer component at the bottom."
+        },
+        {
+          "path": "frontend/src/pages/Privacy.tsx",
+          "operation": "modify",
+          "description": "Verify that the Privacy Policy page renders static content covering data collection, usage, sharing, security, retention, and user rights. Ensure layout uses Footer component at the bottom."
+        },
+        {
+          "path": "frontend/src/pages/Terms.tsx",
+          "operation": "modify",
+          "description": "Verify that the Terms of Service page renders static content covering eligibility, user responsibilities, prohibited activities, and liability limitations. Ensure layout uses Footer component at the bottom."
+        },
+        {
+          "path": "frontend/src/components/Footer.tsx",
+          "operation": "modify",
+          "description": "Verify that the Footer component displays UniXange branding, quick navigation links (Buy, Sell, Rent, Lost & Found), about blurb, copyright, and caffeine.ai attribution. Ensure it appears on all pages."
+        },
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Update the existing ThemeProvider component to read system preference via window.matchMedia('(prefers-color-scheme: dark)'), apply the 'dark' class to document.documentElement on initial load when dark mode is preferred, and add a change listener to update the theme in real-time when the OS preference changes"
+          "description": "Verify that all routes are registered: Homepage (/), Buy (/buy), Sell (/sell), Rent (/rent), Lost & Found (/lost-found), Item Detail (/item/:id), About (/about), Contact (/contact), Privacy (/privacy), and Terms (/terms). Ensure ThemeProvider and QueryClientProvider wrap the router correctly."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Apply Tailwind dark mode variants across all pages and components for comprehensive dark theme support",
+      "summary": "Implement Internet Identity authentication gated to @jainuniversity.ac.in email domain with login modal showing login/signup views, loading, and access-denied states",
       "acceptanceCriteria": [
-        "All pages and components render legible text and appropriate contrast in dark mode",
-        "Backgrounds switch from beige/white to dark equivalents in dark mode",
-        "Modals, cards, inputs, and buttons all have correct dark mode styling",
-        "No hard-coded light-only color classes remain without a dark: counterpart where needed"
+        "Users with @jainuniversity.ac.in email can log in successfully",
+        "Users without a valid Jain University email see an access-denied message",
+        "Admin emails in the allowlist bypass the domain restriction",
+        "Login modal shows appropriate loading and error states"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Add dark: variants to all background, text, border, and interactive elements (navigation links, search input, buttons) to ensure proper contrast and readability in dark mode"
-        },
-        {
-          "path": "frontend/src/components/Footer.tsx",
-          "operation": "modify",
-          "description": "Apply dark: variants to footer background, text colors, link hover states, and dividers to match the dark theme palette"
-        },
-        {
-          "path": "frontend/src/pages/Homepage.tsx",
-          "operation": "modify",
-          "description": "Add dark: variants to hero section, category cards, item previews, backgrounds, and text to ensure visual consistency in dark mode"
-        },
-        {
-          "path": "frontend/src/pages/BuySection.tsx",
-          "operation": "modify",
-          "description": "Apply dark: variants to page background, filter controls, item grid, and all text/border elements for proper dark mode rendering"
-        },
-        {
-          "path": "frontend/src/pages/RentSection.tsx",
-          "operation": "modify",
-          "description": "Add dark: variants to page layout, filtering UI, item listings, and interactive elements to support dark theme"
-        },
-        {
-          "path": "frontend/src/pages/SellSection.tsx",
-          "operation": "modify",
-          "description": "Apply dark: variants to page container, item cards, action buttons, and status indicators for consistent dark mode appearance"
-        },
-        {
-          "path": "frontend/src/pages/LostFoundSection.tsx",
-          "operation": "modify",
-          "description": "Add dark: variants to tabs, item listings, status badges, and form elements to ensure readability in dark mode"
-        },
-        {
-          "path": "frontend/src/pages/About.tsx",
-          "operation": "modify",
-          "description": "Apply dark: variants to page background, section headings, body text, and feature cards for proper dark theme support"
-        },
-        {
-          "path": "frontend/src/pages/Contact.tsx",
-          "operation": "modify",
-          "description": "Add dark: variants to contact cards, icons, text elements, and page background to maintain visual hierarchy in dark mode"
-        },
-        {
-          "path": "frontend/src/pages/Privacy.tsx",
-          "operation": "modify",
-          "description": "Apply dark: variants to policy content container, headings, paragraphs, and list items for legibility in dark mode"
-        },
-        {
-          "path": "frontend/src/pages/Terms.tsx",
-          "operation": "modify",
-          "description": "Add dark: variants to terms content sections, headings, body text, and emphasis elements to ensure contrast in dark mode"
-        },
-        {
-          "path": "frontend/src/components/ItemCard.tsx",
-          "operation": "modify",
-          "description": "Apply dark: variants to card backgrounds, borders, image containers, text elements, price displays, badges, and action buttons to ensure cards render correctly in both themes"
-        },
-        {
-          "path": "frontend/src/components/AddItemModal.tsx",
-          "operation": "modify",
-          "description": "Add dark: variants to modal backdrop, dialog container, form inputs, labels, buttons, error messages, and close controls for proper dark mode rendering"
-        },
-        {
-          "path": "frontend/src/components/DeleteConfirmationModal.tsx",
-          "operation": "modify",
-          "description": "Apply dark: variants to alert dialog background, title, description text, and action buttons to maintain readability in dark mode"
-        },
-        {
           "path": "frontend/src/components/LoginModal.tsx",
           "operation": "modify",
-          "description": "Add dark: variants to modal container, form elements, headings, body text, buttons, and loading states for consistent dark theme appearance"
+          "description": "Verify that the LoginModal handles Internet Identity authentication with views for login/signup choice, loading state, access-denied state for non-Jain University accounts (using universityEmail utility and adminEmailAllowlist), and error states. Use the authorization component to support user authentication flows. Verify the authorization component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/components/ProfileSetup.tsx",
           "operation": "modify",
-          "description": "Apply dark: variants to wizard container, step indicators, form inputs, labels, validation messages, and navigation buttons for dark mode support"
+          "description": "Verify that ProfileSetup gates app access by ensuring authenticated users have a valid @jainuniversity.ac.in email or are in the admin allowlist, and have completed their profile. Step through profile creation and onboarding flows using backend capabilities getCallerUserProfile, saveCallerUserProfile, getOnboardingAnswers, and setOnboardingAnswers before rendering children. Use the authorization component to enforce profile completion. Verify the authorization component's usage instructions before implementing."
         },
+        {
+          "path": "frontend/src/utils/universityEmail.ts",
+          "operation": "modify",
+          "description": "Verify that the universityEmail utility validates @jainuniversity.ac.in email domain and checks the admin allowlist, returning user-friendly error messages for invalid emails."
+        },
+        {
+          "path": "frontend/src/utils/adminEmailAllowlist.ts",
+          "operation": "modify",
+          "description": "Verify that the adminEmailAllowlist utility maintains the hardcoded set of admin emails bypassing university domain restriction with case-insensitive lookup."
+        },
+        {
+          "path": "frontend/src/utils/authIntent.ts",
+          "operation": "modify",
+          "description": "Verify that authIntent utility persists and retrieves user login vs. signup intent in sessionStorage to maintain choice across Internet Identity redirect flows."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Apply beige and black OLX-inspired visual theme consistently across the entire app using CSS custom properties, Tailwind config tokens, and component styles",
+      "acceptanceCriteria": [
+        "Primary background uses beige tones, primary text/accents use black",
+        "Theme is consistent across all pages and components",
+        "Cards, buttons, and navigation follow the OLX-inspired style"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Verify that the global stylesheet defines OLX-inspired CSS custom properties for beige and black color scheme in both light and dark themes. Ensure Tailwind CSS directives and custom utility classes for marketplace-style shadows are present."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Verify that Tailwind config defines custom OKLCH-based color tokens matching the beige and black OLX-inspired theme, including primary, secondary, accent, background, foreground, card, and border colors. Ensure typography, container-queries, and animate plugins are enabled."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Verify that the Header component applies beige and black theme colors consistently using Tailwind classes and CSS custom properties. Ensure the sticky header, category navigation, and mobile menu follow the OLX-inspired style."
+        },
+        {
+          "path": "frontend/src/components/ItemCard.tsx",
+          "operation": "modify",
+          "description": "Verify that ItemCard component styling follows the beige and black OLX-inspired theme using Tailwind classes for card backgrounds, borders, and hover effects."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Implement profile avatar dropdown in header displaying logged-in user's name, email, university, and logout action, visible on desktop and mobile",
+      "acceptanceCriteria": [
+        "Profile avatar appears in the header when user is authenticated",
+        "Clicking the avatar opens a dropdown with user name, email, and university",
+        "Dropdown includes a working logout button",
+        "Avatar is visible on both desktop and mobile"
+      ],
+      "file_operations": [
         {
           "path": "frontend/src/components/ProfileAvatarMenu.tsx",
           "operation": "modify",
-          "description": "Add dark: variants to dropdown menu background, menu items, user info section, hover states, and dividers to ensure proper contrast in dark mode"
+          "description": "Verify that ProfileAvatarMenu dropdown displays the logged-in user's name, email, and university fetched via getCallerUserProfile backend capability. Ensure logout action clears authentication and invalidates queries. Use the authorization component to handle logout flows. Verify the authorization component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Verify that Header component wires ProfileAvatarMenu into the navigation bar for authenticated users, replacing login/signup buttons. Ensure the avatar is visible and clickable on both desktop and mobile views (within the mobile hamburger menu)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Implement Add Item modal form allowing authenticated users to post listings across all categories with AI-generated description support, image upload, and WhatsApp contact",
+      "acceptanceCriteria": [
+        "Modal opens from a floating add button and from section-specific add buttons",
+        "All required fields are validated before submission",
+        "Price field uses ₹ currency symbol",
+        "AI description generation works from title, category, and condition inputs",
+        "Image upload is supported",
+        "WhatsApp number field is included",
+        "Submitted items appear in the correct section listing"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AddItemModal.tsx",
+          "operation": "modify",
+          "description": "Verify that AddItemModal form supports posting items across buy/sell/rent/lost/found categories with fields for title, description (with AI-generated description support using aiDescriptionGenerator utility), category, condition, price in ₹, image upload (using blob-storage component for image handling), and WhatsApp contact number. Ensure form validation and submission to backend capabilities addBuySellItem, listForRent, postLostItem, postFoundItem. Use the blob-storage component to handle image uploads, referencing ExternalBlob.fromBytes and withUploadProgress methods. Verify the blob-storage component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/components/FloatingAddButton.tsx",
           "operation": "modify",
-          "description": "Apply dark: variants to button background, icon color, shadow, and hover state to maintain visibility and visual appeal in dark mode"
+          "description": "Verify that FloatingAddButton triggers the AddItemModal when clicked. Ensure it is visible on relevant pages (Buy, Sell, Rent, Lost & Found sections) as a fixed-position action button."
         },
         {
-          "path": "frontend/src/components/AuthResolutionErrorScreen.tsx",
+          "path": "frontend/src/utils/aiDescriptionGenerator.ts",
           "operation": "modify",
-          "description": "Add dark: variants to error screen background, heading, message text, buttons, and icons to ensure error states are clearly visible in dark mode"
+          "description": "Verify that aiDescriptionGenerator utility produces natural-sounding listing descriptions using rule-based category- and condition-specific phrase templates without external API calls."
+        },
+        {
+          "path": "frontend/src/pages/BuySection.tsx",
+          "operation": "modify",
+          "description": "Wire AddItemModal into Buy Section by adding a section-specific add button that opens the modal with category pre-selected to 'buy/sell'. Ensure FloatingAddButton is also present."
+        },
+        {
+          "path": "frontend/src/pages/SellSection.tsx",
+          "operation": "modify",
+          "description": "Wire AddItemModal into Sell Section by adding a section-specific add button that opens the modal with category pre-selected to 'buy/sell' and isFromSellSection=true. Ensure FloatingAddButton is also present."
+        },
+        {
+          "path": "frontend/src/pages/RentSection.tsx",
+          "operation": "modify",
+          "description": "Wire AddItemModal into Rent Section by adding a section-specific add button that opens the modal with category pre-selected to 'rent'. Ensure FloatingAddButton is also present."
+        },
+        {
+          "path": "frontend/src/pages/LostFoundSection.tsx",
+          "operation": "modify",
+          "description": "Wire AddItemModal into Lost & Found Section by adding section-specific add buttons for 'lost' and 'found' tabs that open the modal with category pre-selected. Ensure FloatingAddButton is also present."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Implement basic in-app chat feature allowing authenticated users to message each other about listings",
+      "acceptanceCriteria": [
+        "Authenticated users can initiate a chat from an item listing",
+        "Chat messages are stored in the backend and retrievable",
+        "Users can view and send messages in a chat thread"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ChatModal.tsx",
+          "operation": "create",
+          "description": "Create a ChatModal component that displays a chat thread for a specific item listing. Include message list display, message input field, and send button. Use backend capabilities to fetch and send messages (assuming backend provides chat-related capabilities). Support authenticated users only. Use the authorization component to enforce authentication. Verify the authorization component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/ItemDetail.tsx",
+          "operation": "modify",
+          "description": "Wire ChatModal into Item Detail page by adding a 'Message Seller' or 'Start Chat' button that opens the chat modal for authenticated users. Ensure the button is visible alongside the WhatsApp contact button."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add React Query hooks for chat operations: useFetchChatMessages to retrieve messages for an item, and useSendChatMessage mutation to send a new message. Integrate with backend chat capabilities (assuming they exist or will be added)."
         }
       ]
     }

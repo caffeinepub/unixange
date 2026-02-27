@@ -15,6 +15,7 @@ export interface BuySellItem {
   'title' : string,
   'storageBlobs' : Array<ExternalBlob>,
   'description' : string,
+  'whatsappNumber' : string,
   'category' : string,
   'sellerId' : UserId,
   'price' : Rupee,
@@ -56,6 +57,7 @@ export interface RentalItem {
   'storageBlobs' : Array<ExternalBlob>,
   'description' : string,
   'available' : boolean,
+  'whatsappNumber' : string,
   'category' : string,
   'dailyPrice' : Rupee,
   'condition' : string,
@@ -109,6 +111,7 @@ export interface _SERVICE {
       Array<Uint8Array>,
       Array<ExternalBlob>,
       boolean,
+      string,
     ],
     undefined
   >,
@@ -127,9 +130,11 @@ export interface _SERVICE {
       [] | [string],
       Array<Uint8Array>,
       Array<ExternalBlob>,
+      [] | [string],
     ],
     undefined
   >,
+  'addNonUniversityPrincipal' : ActorMethod<[Principal], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createUserProfile' : ActorMethod<[UserProfile], undefined>,
   'deleteItem' : ActorMethod<[ItemId], undefined>,
@@ -145,11 +150,14 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getLostFoundItem' : ActorMethod<[ItemId], [] | [LostFoundItem]>,
   'getLostFoundItems' : ActorMethod<[], Array<LostFoundItem>>,
+  'getNonUniversityPrincipals' : ActorMethod<[], Array<Principal>>,
   'getOnboardingAnswers' : ActorMethod<[], [] | [OnboardingAnswers]>,
   'getRentalItem' : ActorMethod<[ItemId], [] | [RentalItem]>,
   'getRentalItems' : ActorMethod<[], Array<RentalItem>>,
   'getUserProfile' : ActorMethod<[UserId], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'isCampusMember' : ActorMethod<[], boolean>,
+  'isNonUniversityPrincipal' : ActorMethod<[Principal], boolean>,
   'listForRent' : ActorMethod<
     [
       string,
@@ -159,6 +167,7 @@ export interface _SERVICE {
       string,
       Array<Uint8Array>,
       Array<ExternalBlob>,
+      string,
     ],
     undefined
   >,
@@ -171,6 +180,7 @@ export interface _SERVICE {
     [string, string, string, Array<Uint8Array>, Array<ExternalBlob>],
     undefined
   >,
+  'removeNonUniversityPrincipal' : ActorMethod<[Principal], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'setOnboardingAnswers' : ActorMethod<[OnboardingAnswers], undefined>,
   'toMinimalItemList' : ActorMethod<[], Array<MinimalItem>>,

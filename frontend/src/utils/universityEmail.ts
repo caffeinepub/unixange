@@ -1,37 +1,18 @@
-import { isAllowlistedAdminEmail } from './adminEmailAllowlist';
+import { isAdminEmail } from './adminEmailAllowlist';
 
-/**
- * Validates that an email address ends with @jainuniversity.ac.in
- * OR is in the admin email allowlist
- * Case-insensitive validation
- */
-export function isValidJainUniversityEmail(email: string): boolean {
-  if (!email || typeof email !== 'string') {
-    return false;
-  }
-  
-  const trimmedEmail = email.trim().toLowerCase();
-  
-  // Check if it's a valid university email
-  if (trimmedEmail.endsWith('@jainuniversity.ac.in')) {
-    return true;
-  }
-  
-  // Check if it's an allowlisted admin email
-  return isAllowlistedAdminEmail(trimmedEmail);
+export function isValidUniversityEmail(email: string): boolean {
+  if (!email) return false;
+  const lower = email.toLowerCase().trim();
+  if (isAdminEmail(lower)) return true;
+  return lower.endsWith('@jainuniversity.ac.in');
 }
 
-/**
- * Returns a user-friendly error message for invalid university emails
- */
-export function getUniversityEmailError(email: string): string {
-  if (!email || !email.trim()) {
-    return 'University email is required';
+export function getUniversityEmailError(email: string): string | null {
+  if (!email) return 'Email is required.';
+  const lower = email.toLowerCase().trim();
+  if (isAdminEmail(lower)) return null;
+  if (!lower.endsWith('@jainuniversity.ac.in')) {
+    return 'Only @jainuniversity.ac.in email addresses are allowed. Please use your Jain University email.';
   }
-  
-  if (!isValidJainUniversityEmail(email)) {
-    return 'Email must be from @jainuniversity.ac.in domain or be an approved admin email';
-  }
-  
-  return '';
+  return null;
 }

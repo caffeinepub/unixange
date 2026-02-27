@@ -1,14 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: 'class',
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  darkMode: ['class'],
+  content: ['./index.html', './src/**/*.{ts,tsx,js,jsx}'],
   theme: {
     extend: {
       fontFamily: {
-        inter: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
         background: 'oklch(var(--background) / <alpha-value>)',
@@ -44,28 +41,16 @@ export default {
         border: 'var(--border)',
         input: 'var(--input)',
         ring: 'var(--ring)',
-        success: {
-          DEFAULT: 'var(--success)',
-          foreground: 'var(--success-foreground)',
-        },
-        warning: {
-          DEFAULT: 'var(--warning)',
-          foreground: 'var(--warning-foreground)',
-        },
-        surface: {
-          DEFAULT: 'var(--surface)',
-          hover: 'var(--surface-hover)',
-        },
+        'header-cream': 'var(--header-cream)',
+        'marketplace-beige': 'var(--marketplace-beige)',
+        'marketplace-dark': 'var(--marketplace-dark)',
+        'marketplace-orange': 'var(--marketplace-orange)',
+        'marketplace-orange-hover': 'var(--marketplace-orange-hover)',
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
-      },
-      boxShadow: {
-        marketplace: '0 2px 8px oklch(0.15 0.02 60 / 0.08), 0 1px 3px oklch(0.15 0.02 60 / 0.06)',
-        'marketplace-hover': '0 4px 16px oklch(0.15 0.02 60 / 0.12), 0 2px 6px oklch(0.15 0.02 60 / 0.08)',
-        card: '0 1px 4px oklch(0.15 0.02 60 / 0.06), 0 1px 2px oklch(0.15 0.02 60 / 0.04)',
       },
       keyframes: {
         'accordion-down': {
@@ -86,5 +71,6 @@ export default {
   plugins: [
     require('tailwindcss-animate'),
     require('@tailwindcss/typography'),
+    require('@tailwindcss/container-queries'),
   ],
-}
+};

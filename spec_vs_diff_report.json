@@ -1,25 +1,53 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-25T10:42:56.508Z",
-  "summary": "The diff implements system-based dark/light mode theme switching across the frontend. REQ-1 (CSS variables under .dark selector in index.css) and REQ-2 (ThemeProvider in App.tsx) are fully implemented. REQ-3 is largely implemented via CSS custom property tokens used throughout all listed components. However, tailwind.config.js is omitted from the diff due to size limits, so the darkMode: 'class' configuration cannot be verified.",
+  "generatedAt": "2026-02-27T19:56:12.544Z",
+  "summary": "The diff implements most of the required features for the UniXchange Campus Marketplace rebuild. REQ-1 through REQ-6 are substantially implemented. REQ-7 (in-app chat feature) is notably absent from both the backend and frontend implementations visible in the diff.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Configure Tailwind CSS to use 'class' dark mode strategy in tailwind.config.js",
-      "reason": "frontend/tailwind.config.js was listed as omitted from the diff due to limits. The acceptance criterion that tailwind.config.js has darkMode set to 'class' cannot be confirmed from available evidence.",
+      "id": "REQ-7",
+      "requirement": "Implement a basic in-app chat feature allowing authenticated users to message each other about listings, with messages stored in backend and retrievable, and a chat thread UI.",
+      "reason": "No chat-related code is visible anywhere in the diff. The backend/main.mo shows no chat message types, storage, or query/mutation functions. The frontend has no ChatModal, ChatThread, or chat-related hooks/pages. ItemCard has a MessageCircle icon imported but no chat initiation logic beyond WhatsApp linking.",
       "evidence": [
-        "frontend/tailwind.config.js"
+        "backend/main.mo",
+        "frontend/src/components/ItemCard.tsx",
+        "frontend/src/hooks/useQueries.ts"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.72,
+  "hallucinated_features": [
+    {
+      "description": "Onboarding answers flow collecting year, address, and city after profile setup",
+      "reason": "The build request does not mention a multi-step onboarding flow collecting year, address, and city from new users. This is implemented in ProfileSetup.tsx and backend with OnboardingAnswers type.",
+      "evidence": [
+        "frontend/src/components/ProfileSetup.tsx",
+        "backend/main.mo",
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    },
+    {
+      "description": "AI-powered item recommendations on the Item Detail page",
+      "reason": "The build request does not mention AI recommendations or a recommendations section on the item detail page, but ItemDetail.tsx imports and uses a getRecommendations utility.",
+      "evidence": [
+        "frontend/src/pages/ItemDetail.tsx"
+      ]
+    },
+    {
+      "description": "caffeine.ai attribution link in Footer",
+      "reason": "The build request does not mention any third-party attribution or caffeine.ai branding in the footer.",
+      "evidence": [
+        "frontend/src/components/Footer.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.82,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
     "frontend/src/App.tsx",
+    "frontend/src/components/AISmartSearch.tsx",
     "frontend/src/components/AddItemModal.tsx",
-    "frontend/src/components/AuthResolutionErrorScreen.tsx",
     "frontend/src/components/DeleteConfirmationModal.tsx",
     "frontend/src/components/FloatingAddButton.tsx",
     "frontend/src/components/Footer.tsx",
@@ -28,15 +56,20 @@
     "frontend/src/components/LoginModal.tsx",
     "frontend/src/components/ProfileAvatarMenu.tsx",
     "frontend/src/components/ProfileSetup.tsx",
+    "frontend/src/hooks/useQueries.ts",
     "frontend/src/index.css",
-    "frontend/src/pages/About.tsx",
     "frontend/src/pages/BuySection.tsx",
-    "frontend/src/pages/Contact.tsx",
     "frontend/src/pages/Homepage.tsx",
+    "frontend/src/pages/ItemDetail.tsx",
     "frontend/src/pages/LostFoundSection.tsx",
     "frontend/src/pages/RentSection.tsx",
     "frontend/src/pages/SellSection.tsx",
-    "frontend/src/pages/Terms.tsx",
+    "frontend/src/utils/adminEmailAllowlist.ts",
+    "frontend/src/utils/aiDescriptionGenerator.ts",
+    "frontend/src/utils/aiRecommender.ts",
+    "frontend/src/utils/aiSmartSearch.ts",
+    "frontend/src/utils/authIntent.ts",
+    "frontend/src/utils/universityEmail.ts",
     "frontend/tailwind.config.js",
     "project_state.json"
   ]

@@ -12,13 +12,27 @@ import MixinAuthorization "authorization/MixinAuthorization";
 import Runtime "mo:core/Runtime";
 import Char "mo:core/Char";
 import Set "mo:core/Set";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   // ========== Type Definitions ==========
 
   type UserId = Principal;
   type ItemId = Nat;
   type Rupee = Nat;
+  type NonUniversityPrincipal = Principal;
+
+  public type Error = {
+    #nonUniversityPrincipal : NonUniversityPrincipal;
+    #backend : Text;
+    #forbidden;
+    #ledger;
+    #nonExistent;
+    #notAuthorized;
+    #notYetSupported;
+    #stableVarInvariant;
+  };
 
   public type ItemType = {
     #buySell : BuySellItem;
@@ -36,6 +50,7 @@ actor {
     storageBlobs : [Storage.ExternalBlob];
     category : Text;
     isFromSellSection : Bool;
+    whatsappNumber : Text; // Added field
   };
 
   public type RentalItem = {
@@ -49,6 +64,7 @@ actor {
     images : [Blob];
     storageBlobs : [Storage.ExternalBlob];
     category : Text;
+    whatsappNumber : Text; // Added field
   };
 
   public type LostFoundItem = {
@@ -85,7 +101,6 @@ actor {
     year : Text;
     address : Text;
     city : Text;
-    // Add more fields as needed
   };
 
   // ========= Initialization =========
@@ -104,6 +119,8 @@ actor {
   let lostFoundItems = Map.empty<ItemId, LostFoundItem>();
   let userProfiles = Map.empty<UserId, UserProfile>();
   let onboardingAnswers = Map.empty<UserId, OnboardingAnswers>();
+
+  let nonUniversityPrincipals = Map.empty<Principal, ()>();
 
   include MixinStorage();
 
@@ -145,13 +162,17 @@ actor {
     adminEmailWhitelist.contains(email);
   };
 
+  // Returns true if the caller is allowed to create/modify profiles and items.
+  // Admins always pass. Otherwise the caller must have a saved profile whose
+  // email belongs to @jainuniversity.ac.in or the admin whitelist.
   func hasValidCampusMembership(caller : Principal) : Bool {
-    // Admins bypass campus membership check
     if (AccessControl.isAdmin(accessControlState, caller)) {
       return true;
     };
-
-    // Check if user has a profile with valid university email
+    // Also allow if the principal is not in the explicit blocklist
+    if (nonUniversityPrincipals.containsKey(caller)) {
+      return false;
+    };
     switch (userProfiles.get(caller)) {
       case (?profile) {
         validateUniversityEmail(profile.email) or isAdminEmail(profile.email);
@@ -162,14 +183,48 @@ actor {
     };
   };
 
+  // ========== "Campus Membership" Functions ==========
+
+  public shared ({ caller }) func isCampusMember() : async Bool {
+    hasValidCampusMembership(caller);
+  };
+
+  public shared ({ caller }) func isNonUniversityPrincipal(principal : Principal) : async Bool {
+    if (nonUniversityPrincipals.containsKey(principal)) { return true };
+    switch (userProfiles.get(principal)) {
+      case (?profile) {
+        return not (validateUniversityEmail(profile.email) or isAdminEmail(profile.email));
+      };
+      case (null) { return false };
+    };
+  };
+
+  // ========== Non-University Principal Management ==========
+
+  public shared ({ caller }) func addNonUniversityPrincipal(principal : Principal) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can add non-university principals");
+    };
+    nonUniversityPrincipals.add(principal, ());
+  };
+
+  public shared ({ caller }) func removeNonUniversityPrincipal(principal : Principal) : async () {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can remove non-university principals");
+    };
+    nonUniversityPrincipals.remove(principal);
+  };
+
+  public query ({ caller }) func getNonUniversityPrincipals() : async [Principal] {
+    if (not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Only admins can list non-university principals");
+    };
+    nonUniversityPrincipals.toArray().map(func((p, _)) { p });
+  };
+
   // ========== User Profile Functions ==========
 
   public query ({ caller }) func getUserProfile(user : UserId) : async ?UserProfile {
-    // Enforce campus membership check before allowing profile access
-    if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to access profiles");
-    };
-
     if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
@@ -180,10 +235,6 @@ actor {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
     };
-
-    // Note: This function is allowed without campus membership check
-    // because users need to retrieve their profile (if exists) to know
-    // whether they need to create one with valid email
     userProfiles.get(caller);
   };
 
@@ -192,9 +243,14 @@ actor {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
 
-    // Validate university email domain (case-insensitive) or admin email
+    // Prevent non-university email usage
     if (not validateUniversityEmail(profile.email) and not isAdminEmail(profile.email)) {
       Runtime.trap("Unauthorized: Email must be from @jainuniversity.ac.in domain or admin email");
+    };
+
+    // Prevent explicitly blocked principals from saving profiles
+    if (nonUniversityPrincipals.containsKey(caller)) {
+      Runtime.trap("Unauthorized: This principal has been blocked from saving profiles");
     };
 
     userProfiles.add(caller, profile);
@@ -205,12 +261,16 @@ actor {
       Runtime.trap("Unauthorized: Only users can create profiles");
     };
 
-    // Validate university email domain (case-insensitive) or admin email
+    // Prevent non-university email usage
     if (not validateUniversityEmail(profile.email) and not isAdminEmail(profile.email)) {
       Runtime.trap("Unauthorized: Email must be from @jainuniversity.ac.in domain or admin email");
     };
 
-    // Store profile and initialize empty onboarding answers
+    // Prevent explicitly blocked principals from creating profiles
+    if (nonUniversityPrincipals.containsKey(caller)) {
+      Runtime.trap("Unauthorized: This principal has been blocked from creating profiles");
+    };
+
     userProfiles.add(caller, profile);
     onboardingAnswers.add(caller, {
       year = "";
@@ -228,15 +288,13 @@ actor {
   };
 
   public query ({ caller }) func getOnboardingAnswers() : async ?OnboardingAnswers {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can get onboarding answers");
+    };
     onboardingAnswers.get(caller);
   };
 
   public query ({ caller }) func toMinimalItemList() : async [MinimalItem] {
-    // Require valid campus membership to view items
-    if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to view items");
-    };
-
     allItems.toArray().map(
       func((_, item)) {
         switch (item) {
@@ -274,11 +332,6 @@ actor {
   // ========== Buy/Sell Section Functions ==========
 
   public query ({ caller }) func getBuySellItems() : async [BuySellItem] {
-    // Require valid campus membership to view items
-    if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to view items");
-    };
-
     allItems.toArray().filter(
       func((_, item)) {
         switch (item) {
@@ -290,25 +343,20 @@ actor {
   };
 
   public query ({ caller }) func getBuySellItem(itemId : ItemId) : async ?BuySellItem {
-    // Require valid campus membership to view items
-    if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to view items");
-    };
-
     switch (allItems.get(itemId)) {
       case (?item) { switch (item) { case (#buySell(buySellItem)) { ?buySellItem }; case (#rental(_)) { null } } };
       case (null) { null };
     };
   };
 
-  public shared ({ caller }) func addBuySellItem(title : Text, description : Text, price : Rupee, condition : Text, category : Text, images : [Blob], storageBlobs : [Storage.ExternalBlob], isFromSellSection : Bool) : async () {
+  public shared ({ caller }) func addBuySellItem(title : Text, description : Text, price : Rupee, condition : Text, category : Text, images : [Blob], storageBlobs : [Storage.ExternalBlob], isFromSellSection : Bool, whatsappNumber : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can post items for sale");
     };
 
-    // Require valid campus membership to post items
+    // Only university members (or admins) may create items
     if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to post items");
+      Runtime.trap("Unauthorized: Only @jainuniversity.ac.in members can post items for sale");
     };
 
     let id = getNextItemId();
@@ -323,17 +371,13 @@ actor {
       storageBlobs;
       category;
       isFromSellSection;
+      whatsappNumber;
     };
 
     allItems.add(id, #buySell(buySellItem));
   };
 
   public query ({ caller }) func filterBuySellItemsByCategory(category : Text) : async [BuySellItem] {
-    // Require valid campus membership to view items
-    if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to view items");
-    };
-
     allItems.toArray().filter(
       func((_, item)) {
         switch (item) {
@@ -345,11 +389,6 @@ actor {
   };
 
   public query ({ caller }) func filterBuySellItemsByPriceRange(minPrice : Rupee, maxPrice : Rupee) : async [BuySellItem] {
-    // Require valid campus membership to view items
-    if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to view items");
-    };
-
     allItems.toArray().filter(
       func((_, item)) {
         switch (item) {
@@ -363,11 +402,6 @@ actor {
   // ========== Rent Section Functions ==========
 
   public query ({ caller }) func getRentalItems() : async [RentalItem] {
-    // Require valid campus membership to view items
-    if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to view items");
-    };
-
     allItems.toArray().filter(
       func((_, item)) {
         switch (item) { case (#rental(_)) { true }; case (#buySell(_)) { false } };
@@ -376,25 +410,20 @@ actor {
   };
 
   public query ({ caller }) func getRentalItem(itemId : ItemId) : async ?RentalItem {
-    // Require valid campus membership to view items
-    if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to view items");
-    };
-
     switch (allItems.get(itemId)) {
       case (?item) { switch (item) { case (#rental(rentalItem)) { ?rentalItem }; case (#buySell(_)) { null } } };
       case (null) { null };
     };
   };
 
-  public shared ({ caller }) func listForRent(title : Text, description : Text, dailyPrice : Rupee, condition : Text, category : Text, images : [Blob], storageBlobs : [Storage.ExternalBlob]) : async () {
+  public shared ({ caller }) func listForRent(title : Text, description : Text, dailyPrice : Rupee, condition : Text, category : Text, images : [Blob], storageBlobs : [Storage.ExternalBlob], whatsappNumber : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can list items for rent");
     };
 
-    // Require valid campus membership to post items
+    // Only university members (or admins) may list items
     if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to list items");
+      Runtime.trap("Unauthorized: Only @jainuniversity.ac.in members can list items for rent");
     };
 
     let id = getNextItemId();
@@ -409,6 +438,7 @@ actor {
       images;
       storageBlobs;
       category;
+      whatsappNumber;
     };
 
     allItems.add(id, #rental(rentalItem));
@@ -417,20 +447,10 @@ actor {
   // ========== Lost & Found Section Functions ==========
 
   public query ({ caller }) func getLostFoundItems() : async [LostFoundItem] {
-    // Require valid campus membership to view items
-    if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to view items");
-    };
-
     lostFoundItems.values().toArray();
   };
 
   public query ({ caller }) func getLostFoundItem(itemId : ItemId) : async ?LostFoundItem {
-    // Require valid campus membership to view items
-    if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to view items");
-    };
-
     lostFoundItems.get(itemId);
   };
 
@@ -439,9 +459,9 @@ actor {
       Runtime.trap("Unauthorized: Only users can post lost items");
     };
 
-    // Require valid campus membership to post items
+    // Only university members (or admins) may post lost items
     if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to post items");
+      Runtime.trap("Unauthorized: Only @jainuniversity.ac.in members can post lost items");
     };
 
     let id = getNextLostFoundItemId();
@@ -464,9 +484,9 @@ actor {
       Runtime.trap("Unauthorized: Only users can post found items");
     };
 
-    // Require valid campus membership to post items
+    // Only university members (or admins) may post found items
     if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to post items");
+      Runtime.trap("Unauthorized: Only @jainuniversity.ac.in members can post found items");
     };
 
     let id = getNextLostFoundItemId();
@@ -487,9 +507,13 @@ actor {
   // ========== Delete Item Functions ==========
 
   public shared ({ caller }) func deleteItem(itemId : ItemId) : async () {
-    // Require valid campus membership for delete operations
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete items");
+    };
+
+    // Only university members (or admins) may delete items
     if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to delete items");
+      Runtime.trap("Unauthorized: Only @jainuniversity.ac.in members can delete items");
     };
 
     switch (allItems.get(itemId)) {
@@ -511,9 +535,13 @@ actor {
   };
 
   public shared ({ caller }) func deleteLostFoundItem(itemId : ItemId) : async () {
-    // Require valid campus membership for delete operations
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete lost/found items");
+    };
+
+    // Only university members (or admins) may delete items
     if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to delete items");
+      Runtime.trap("Unauthorized: Only @jainuniversity.ac.in members can delete lost/found items");
     };
 
     switch (lostFoundItems.get(itemId)) {
@@ -530,9 +558,13 @@ actor {
   // ========== Mark Item as Recovered ==========
 
   public shared ({ caller }) func markAsRecovered(itemId : ItemId) : async () {
-    // Require valid campus membership for recovery operations
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can mark items as recovered");
+    };
+
+    // Only university members (or admins) may modify items
     if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to mark items as recovered");
+      Runtime.trap("Unauthorized: Only @jainuniversity.ac.in members can mark items as recovered");
     };
 
     switch (lostFoundItems.get(itemId)) {
@@ -567,14 +599,15 @@ actor {
     location : ?Text,
     images : [Blob],
     storageBlobs : [Storage.ExternalBlob],
+    whatsappNumber : ?Text,
   ) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add items");
     };
 
-    // Require valid campus membership to add items
+    // Only university members (or admins) may add items
     if (not hasValidCampusMembership(caller)) {
-      Runtime.trap("Unauthorized: Valid university email required to add items");
+      Runtime.trap("Unauthorized: Only @jainuniversity.ac.in members can add items");
     };
 
     switch (section) {
@@ -588,6 +621,7 @@ actor {
           images,
           storageBlobs,
           true,
+          switch (whatsappNumber) { case (?number) { number }; case (null) { Runtime.trap("Whatsapp number is required for buySell section") } },
         );
       };
       case (#rent) {
@@ -599,6 +633,7 @@ actor {
           switch (category) { case (?cat) { cat }; case (null) { Runtime.trap("Category is required for rent section") } },
           images,
           storageBlobs,
+          switch (whatsappNumber) { case (?number) { number }; case (null) { Runtime.trap("Whatsapp number is required for rent section") } },
         );
       };
       case (#lost) {

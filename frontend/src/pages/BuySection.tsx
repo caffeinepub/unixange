@@ -1,129 +1,130 @@
-import React, { useState } from 'react';
-import { Search, Filter, SlidersHorizontal, Loader2, AlertCircle } from 'lucide-react';
-import { useGetBuySellItems } from '../hooks/useQueries';
+import { useState } from 'react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import ItemCard from '../components/ItemCard';
-import { useDeleteItem } from '../hooks/useQueries';
-
-const CATEGORIES = ['All', 'Electronics', 'Books', 'Furniture', 'Clothing', 'Sports', 'Stationery', 'Other'];
+import AISmartSearch from '../components/AISmartSearch';
+import AddItemModal from '../components/AddItemModal';
+import FloatingAddButton from '../components/FloatingAddButton';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
+import { useGetBuySellItems, useDeleteItem } from '../hooks/useQueries';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { filterBuySellItems } from '../utils/aiSmartSearch';
+import { ShoppingBag, X } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function BuySection() {
+  const navigate = useNavigate();
+  const { identity } = useInternetIdentity();
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<bigint | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [sortBy, setSortBy] = useState<'newest' | 'price-asc' | 'price-desc'>('newest');
 
-  const { data: items = [], isLoading, error } = useGetBuySellItems();
+  const { data: items = [], isLoading } = useGetBuySellItems();
   const deleteItem = useDeleteItem();
 
-  const filteredItems = items
-    .filter(item => {
-      const matchesSearch = !searchQuery ||
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'price-asc') return Number(a.price - b.price);
-      if (sortBy === 'price-desc') return Number(b.price - a.price);
-      return Number(b.id - a.id);
-    });
+  // Filter to only buy items (not from sell section)
+  const buyItems = items.filter(i => !i.isFromSellSection);
+
+  const filtered = searchQuery
+    ? filterBuySellItems(buyItems, searchQuery)
+    : buyItems;
+
+  const handleDelete = async () => {
+    if (deleteId === null) return;
+    await deleteItem.mutateAsync(deleteId);
+    setDeleteId(null);
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Page Header */}
-      <div className="bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Buy Items</h1>
-
-          {/* Search */}
-          <div className="relative max-w-lg">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search items..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 text-sm bg-background border border-border rounded-full focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground"
-            />
+    <div className="min-h-screen flex flex-col bg-background">
+      <Header />
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+              <ShoppingBag className="h-7 w-7 text-primary" />
+              Buy Items
+            </h1>
+            <p className="text-muted-foreground mt-1">Find great deals from fellow students</p>
           </div>
+          {identity && (
+            <button
+              onClick={() => setAddModalOpen(true)}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md font-medium hover:opacity-90 transition-opacity text-sm"
+            >
+              + Post Item
+            </button>
+          )}
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
-                  selectedCategory === cat
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-card text-muted-foreground border-border hover:border-primary hover:text-foreground'
-                }`}
-              >
-                {cat}
+        <AISmartSearch onSearch={setSearchQuery} className="mb-6" />
+
+        {searchQuery && (
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm text-muted-foreground">Showing results for:</span>
+            <span className="flex items-center gap-1 bg-primary/10 text-primary text-sm px-3 py-1 rounded-full font-medium">
+              {searchQuery}
+              <button onClick={() => setSearchQuery('')} className="ml-1 hover:opacity-70">
+                <X className="h-3 w-3" />
               </button>
+            </span>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="rounded-lg overflow-hidden border border-border">
+                <Skeleton className="aspect-[4/3] w-full" />
+                <div className="p-3 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              </div>
             ))}
           </div>
-
-          <div className="ml-auto flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="text-xs bg-card border border-border rounded-lg px-2 py-1.5 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="newest">Newest First</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Loading */}
-        {isLoading && (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        )}
-
-        {/* Error */}
-        {error && (
-          <div className="flex items-center gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-destructive">
-            <AlertCircle className="h-5 w-5 flex-shrink-0" />
-            <p className="text-sm">Failed to load items. Please try again.</p>
-          </div>
-        )}
-
-        {/* Items Grid */}
-        {!isLoading && !error && (
-          <>
-            <p className="text-sm text-muted-foreground mb-4">
-              {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''} found
-            </p>
-            {filteredItems.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-muted-foreground text-lg mb-2">No items found</p>
-                <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {filteredItems.map(item => (
-                  <ItemCard
-                    key={item.id.toString()}
-                    type="buySell"
-                    item={item}
-                    onDelete={() => deleteItem.mutate(item.id)}
-                  />
-                ))}
-              </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16 text-muted-foreground">
+            <ShoppingBag className="h-14 w-14 mx-auto mb-4 opacity-30" />
+            <p className="text-lg font-medium">{searchQuery ? 'No items match your search.' : 'No items listed yet.'}</p>
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="mt-3 text-primary hover:opacity-80 text-sm">
+                Clear search
+              </button>
             )}
-          </>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filtered.map(item => (
+              <ItemCard
+                key={item.id.toString()}
+                id={item.id}
+                title={item.title}
+                price={item.price}
+                condition={item.condition}
+                category={item.category}
+                images={item.images}
+                storageBlobs={item.storageBlobs}
+                whatsappNumber={item.whatsappNumber}
+                itemType="buy"
+                isOwner={identity?.getPrincipal().toString() === item.sellerId.toString()}
+                onDelete={() => setDeleteId(item.id)}
+              />
+            ))}
+          </div>
         )}
-      </div>
+      </main>
+      <Footer />
+
+      <FloatingAddButton onClick={() => setAddModalOpen(true)} />
+      <AddItemModal open={addModalOpen} onOpenChange={setAddModalOpen} defaultSection="buy" />
+      <DeleteConfirmationModal
+        open={deleteId !== null}
+        onOpenChange={open => { if (!open) setDeleteId(null); }}
+        onConfirm={handleDelete}
+        isLoading={deleteItem.isPending}
+      />
     </div>
   );
 }

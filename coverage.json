@@ -1,96 +1,149 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-25T10:42:56.511Z",
+  "generatedAt": "2026-02-27T19:56:12.548Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 7,
+    "implemented": 6,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Configure Tailwind CSS to use 'class' dark mode strategy and ensure all existing color tokens and utility classes have appropriate dark mode variants defined in the CSS theme variables (frontend/src/index.css and frontend/tailwind.config.js).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/tailwind.config.js",
-          "frontend/src/index.css"
-        ],
-        "matchedFiles": [
-          "frontend/tailwind.config.js",
-          "frontend/src/index.css"
-        ]
+        "summary": "Rebuild the full UniXchange backend actor in Motoko with all data types and logic: buy/sell items, rental items, lost & found items, user profiles with @jainuniversity.ac.in email validation, admin email allowlist bypass, and all CRUD operations for each item category.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Create a ThemeProvider component (or update the existing one in App.tsx) that reads the user's system preference via the window.matchMedia('(prefers-color-scheme: dark)') API on initial load, applies the 'dark' class to the document root element accordingly, and listens for system preference changes in real-time to update the theme automatically.",
+        "summary": "Rebuild the full React frontend for UniXange with all pages: Homepage (hero + category browse + recent listings), Buy Section, Sell Section (authenticated user's listings), Rent Section, Lost & Found Section, Item Detail page, About, Contact, Privacy, and Terms pages.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/pages/Homepage.tsx",
+          "frontend/src/pages/BuySection.tsx",
+          "frontend/src/pages/SellSection.tsx",
+          "frontend/src/pages/RentSection.tsx",
+          "frontend/src/pages/LostFoundSection.tsx",
+          "frontend/src/pages/ItemDetail.tsx",
+          "frontend/src/pages/About.tsx",
+          "frontend/src/pages/Contact.tsx",
+          "frontend/src/pages/Privacy.tsx",
+          "frontend/src/pages/Terms.tsx",
+          "frontend/src/components/Footer.tsx",
           "frontend/src/App.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/pages/Homepage.tsx",
+          "frontend/src/pages/BuySection.tsx",
+          "frontend/src/pages/SellSection.tsx",
+          "frontend/src/pages/RentSection.tsx",
+          "frontend/src/pages/LostFoundSection.tsx",
+          "frontend/src/pages/ItemDetail.tsx",
+          "frontend/src/components/Footer.tsx",
           "frontend/src/App.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Update all page and component files (Header, Footer, Homepage, BuySection, RentSection, SellSection, LostFoundSection, About, Contact, Privacy, Terms, ItemCard, AddItemModal, DeleteConfirmationModal, LoginModal, ProfileSetup, ProfileAvatarMenu, FloatingAddButton, AuthResolutionErrorScreen) to apply Tailwind dark mode variants (dark:) so backgrounds, text, borders, cards, modals, and inputs render correctly in both light and dark themes.",
+        "summary": "Implement Internet Identity authentication gated to @jainuniversity.ac.in university email domain, with a login modal showing login/signup views, loading state, and access-denied state for non-Jain University accounts.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/Header.tsx",
-          "frontend/src/components/Footer.tsx",
-          "frontend/src/pages/Homepage.tsx",
-          "frontend/src/pages/BuySection.tsx",
-          "frontend/src/pages/RentSection.tsx",
-          "frontend/src/pages/SellSection.tsx",
-          "frontend/src/pages/LostFoundSection.tsx",
-          "frontend/src/pages/About.tsx",
-          "frontend/src/pages/Contact.tsx",
-          "frontend/src/pages/Privacy.tsx",
-          "frontend/src/pages/Terms.tsx",
-          "frontend/src/components/ItemCard.tsx",
-          "frontend/src/components/AddItemModal.tsx",
-          "frontend/src/components/DeleteConfirmationModal.tsx",
           "frontend/src/components/LoginModal.tsx",
           "frontend/src/components/ProfileSetup.tsx",
-          "frontend/src/components/ProfileAvatarMenu.tsx",
-          "frontend/src/components/FloatingAddButton.tsx",
-          "frontend/src/components/AuthResolutionErrorScreen.tsx"
+          "frontend/src/utils/universityEmail.ts",
+          "frontend/src/utils/adminEmailAllowlist.ts",
+          "frontend/src/utils/authIntent.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/Header.tsx",
-          "frontend/src/components/Footer.tsx",
-          "frontend/src/pages/Homepage.tsx",
-          "frontend/src/pages/BuySection.tsx",
-          "frontend/src/pages/RentSection.tsx",
-          "frontend/src/pages/SellSection.tsx",
-          "frontend/src/pages/LostFoundSection.tsx",
-          "frontend/src/pages/About.tsx",
-          "frontend/src/pages/Contact.tsx",
-          "frontend/src/pages/Terms.tsx",
-          "frontend/src/components/ItemCard.tsx",
-          "frontend/src/components/AddItemModal.tsx",
-          "frontend/src/components/DeleteConfirmationModal.tsx",
           "frontend/src/components/LoginModal.tsx",
           "frontend/src/components/ProfileSetup.tsx",
+          "frontend/src/utils/universityEmail.ts",
+          "frontend/src/utils/adminEmailAllowlist.ts",
+          "frontend/src/utils/authIntent.ts"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Apply a beige and black OLX-inspired visual theme consistently across the entire app, including CSS custom properties, Tailwind config tokens, and component styles.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/index.css",
+          "frontend/tailwind.config.js",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/ItemCard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/index.css",
+          "frontend/tailwind.config.js",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/ItemCard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Implement a profile avatar dropdown in the header that displays the logged-in user's name, email, and university, and provides a logout action. The avatar must be visible and accessible on both desktop and mobile views.",
+        "status": "implemented",
+        "plannedFiles": [
           "frontend/src/components/ProfileAvatarMenu.tsx",
+          "frontend/src/components/Header.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProfileAvatarMenu.tsx",
+          "frontend/src/components/Header.tsx"
+        ]
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Implement an Add Item modal form that allows authenticated users to post new listings across all categories (buy/sell/rent/lost/found) with fields for title, description (with AI-generated description support), category, condition, price in ₹, image upload, and WhatsApp contact number.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/AddItemModal.tsx",
           "frontend/src/components/FloatingAddButton.tsx",
-          "frontend/src/components/AuthResolutionErrorScreen.tsx"
+          "frontend/src/utils/aiDescriptionGenerator.ts",
+          "frontend/src/pages/BuySection.tsx",
+          "frontend/src/pages/SellSection.tsx",
+          "frontend/src/pages/RentSection.tsx",
+          "frontend/src/pages/LostFoundSection.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/AddItemModal.tsx",
+          "frontend/src/components/FloatingAddButton.tsx",
+          "frontend/src/utils/aiDescriptionGenerator.ts",
+          "frontend/src/pages/BuySection.tsx",
+          "frontend/src/pages/SellSection.tsx",
+          "frontend/src/pages/RentSection.tsx",
+          "frontend/src/pages/LostFoundSection.tsx"
+        ]
+      },
+      {
+        "id": "REQ-7",
+        "summary": "Implement a basic in-app chat feature allowing authenticated users to message each other about listings.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ChatModal.tsx",
+          "frontend/src/pages/ItemDetail.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/ItemDetail.tsx",
+          "frontend/src/hooks/useQueries.ts"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
+    "frontend/src/components/AISmartSearch.tsx",
     "frontend/src/components/AddItemModal.tsx",
-    "frontend/src/components/AuthResolutionErrorScreen.tsx",
     "frontend/src/components/DeleteConfirmationModal.tsx",
     "frontend/src/components/FloatingAddButton.tsx",
     "frontend/src/components/Footer.tsx",
@@ -99,16 +152,20 @@
     "frontend/src/components/LoginModal.tsx",
     "frontend/src/components/ProfileAvatarMenu.tsx",
     "frontend/src/components/ProfileSetup.tsx",
-    "frontend/src/config.ts",
+    "frontend/src/hooks/useQueries.ts",
     "frontend/src/index.css",
-    "frontend/src/pages/About.tsx",
     "frontend/src/pages/BuySection.tsx",
-    "frontend/src/pages/Contact.tsx",
     "frontend/src/pages/Homepage.tsx",
+    "frontend/src/pages/ItemDetail.tsx",
     "frontend/src/pages/LostFoundSection.tsx",
     "frontend/src/pages/RentSection.tsx",
     "frontend/src/pages/SellSection.tsx",
-    "frontend/src/pages/Terms.tsx",
+    "frontend/src/utils/adminEmailAllowlist.ts",
+    "frontend/src/utils/aiDescriptionGenerator.ts",
+    "frontend/src/utils/aiRecommender.ts",
+    "frontend/src/utils/aiSmartSearch.ts",
+    "frontend/src/utils/authIntent.ts",
+    "frontend/src/utils/universityEmail.ts",
     "frontend/tailwind.config.js",
     "project_state.json",
     "scratch/component-selection.json",

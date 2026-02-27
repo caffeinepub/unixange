@@ -1,75 +1,159 @@
 {
   "kind": "build_request",
-  "title": "Add system-based dark/light mode theme switching",
-  "priority": "normal",
+  "title": "Rebuild UniXange Campus Marketplace (Full Redeployment)",
+  "projectName": "UniXange",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Configure Tailwind CSS to use 'class' dark mode strategy and ensure all existing color tokens and utility classes have appropriate dark mode variants defined in the CSS theme variables (frontend/src/index.css and frontend/tailwind.config.js).",
-      "target": "frontend",
+      "text": "Rebuild the full UniXchange backend actor in Motoko with all data types and logic: buy/sell items, rental items, lost & found items, user profiles with @jainuniversity.ac.in email validation, admin email allowlist bypass, and all CRUD operations for each item category.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-14"
+          "msg-17"
         ],
         "quotes": [
-          "lets create a dark mode and light mode theme which will switch according to the system"
+          "Buy / Sell / Rent / Lost & Found sections",
+          "Internet Identity login with @jainuniversity.ac.in domain gate"
         ]
       },
       "acceptanceCriteria": [
-        "tailwind.config.js has darkMode set to 'class'",
-        "CSS variables for dark mode (colors, backgrounds, borders, text) are defined under a .dark selector in index.css",
-        "All existing beige/white light theme colors have corresponding dark mode counterparts"
+        "Backend actor compiles and deploys without errors",
+        "User profiles can be created and retrieved",
+        "Buy/sell items can be created, listed, and deleted",
+        "Rental items can be created, listed, and deleted",
+        "Lost & Found items can be created, listed, and deleted",
+        "Only @jainuniversity.ac.in emails are accepted (plus admin allowlist)"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Create a ThemeProvider component (or update the existing one in App.tsx) that reads the user's system preference via the window.matchMedia('(prefers-color-scheme: dark)') API on initial load, applies the 'dark' class to the document root element accordingly, and listens for system preference changes in real-time to update the theme automatically.",
+      "text": "Rebuild the full React frontend for UniXange with all pages: Homepage (hero + category browse + recent listings), Buy Section, Sell Section (authenticated user's listings), Rent Section, Lost & Found Section, Item Detail page, About, Contact, Privacy, and Terms pages.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-14"
+          "msg-17"
         ],
         "quotes": [
-          "lets create a dark mode and light mode theme which will switch according to the system"
+          "Buy / Sell / Rent / Lost & Found sections",
+          "Professional footer"
         ]
       },
       "acceptanceCriteria": [
-        "On page load, if the OS is set to dark mode, the 'dark' class is applied to the <html> element",
-        "On page load, if the OS is set to light mode, no 'dark' class is applied",
-        "When the user changes their OS theme while the app is open, the theme updates in real-time without a page reload",
-        "ThemeProvider wraps the entire app in App.tsx"
+        "Homepage renders hero section with AI smart search and category cards",
+        "Buy, Sell, Rent, Lost & Found sections each display correct listings",
+        "Item Detail page shows image, metadata, and WhatsApp contact button",
+        "About, Contact, Privacy, Terms static pages render correctly",
+        "Footer displays on all pages with navigation links and UniXange branding"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update all page and component files (Header, Footer, Homepage, BuySection, RentSection, SellSection, LostFoundSection, About, Contact, Privacy, Terms, ItemCard, AddItemModal, DeleteConfirmationModal, LoginModal, ProfileSetup, ProfileAvatarMenu, FloatingAddButton, AuthResolutionErrorScreen) to apply Tailwind dark mode variants (dark:) so backgrounds, text, borders, cards, modals, and inputs render correctly in both light and dark themes.",
-      "target": "frontend",
+      "text": "Implement Internet Identity authentication gated to @jainuniversity.ac.in university email domain, with a login modal showing login/signup views, loading state, and access-denied state for non-Jain University accounts.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-14"
+          "msg-17"
         ],
         "quotes": [
-          "lets create a dark mode and light mode theme which will switch according to the system"
+          "Internet Identity login with @jainuniversity.ac.in domain gate"
         ]
       },
       "acceptanceCriteria": [
-        "All pages and components render legible text and appropriate contrast in dark mode",
-        "Backgrounds switch from beige/white to dark equivalents in dark mode",
-        "Modals, cards, inputs, and buttons all have correct dark mode styling",
-        "No hard-coded light-only color classes remain without a dark: counterpart where needed"
+        "Users with @jainuniversity.ac.in email can log in successfully",
+        "Users without a valid Jain University email see an access-denied message",
+        "Admin emails in the allowlist bypass the domain restriction",
+        "Login modal shows appropriate loading and error states"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Apply a beige and black OLX-inspired visual theme consistently across the entire app, including CSS custom properties, Tailwind config tokens, and component styles.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-17"
+        ],
+        "quotes": [
+          "Beige + black OLX-inspired theme"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Primary background uses beige tones, primary text/accents use black",
+        "Theme is consistent across all pages and components",
+        "Cards, buttons, and navigation follow the OLX-inspired style"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Implement a profile avatar dropdown in the header that displays the logged-in user's name, email, and university, and provides a logout action. The avatar must be visible and accessible on both desktop and mobile views.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-17"
+        ],
+        "quotes": [
+          "Profile avatar dropdown"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Profile avatar appears in the header when user is authenticated",
+        "Clicking the avatar opens a dropdown with user name, email, and university",
+        "Dropdown includes a working logout button",
+        "Avatar is visible on both desktop and mobile"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Implement an Add Item modal form that allows authenticated users to post new listings across all categories (buy/sell/rent/lost/found) with fields for title, description (with AI-generated description support), category, condition, price in ₹, image upload, and WhatsApp contact number.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-17"
+        ],
+        "quotes": [
+          "Item creation modal with ₹ pricing"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Modal opens from a floating add button and from section-specific add buttons",
+        "All required fields are validated before submission",
+        "Price field uses ₹ currency symbol",
+        "AI description generation works from title, category, and condition inputs",
+        "Image upload is supported",
+        "WhatsApp number field is included",
+        "Submitted items appear in the correct section listing"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Implement a basic in-app chat feature allowing authenticated users to message each other about listings.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-17"
+        ],
+        "quotes": [
+          "Chat feature"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Authenticated users can initiate a chat from an item listing",
+        "Chat messages are stored in the backend and retrievable",
+        "Users can view and send messages in a chat thread"
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
-    "Theme switching must be purely system-driven (prefers-color-scheme); do not add a manual toggle button unless the user requests it",
-    "Preserve the existing beige and white light mode design — dark mode should complement it, not replace it"
+    "All backend logic must remain in a single Motoko actor in backend/main.mo",
+    "Frontend immutable paths (hooks/useInternetIdentity.ts, hooks/useActor.ts, main.tsx, components/ui) must not be modified",
+    "University email validation must restrict access to @jainuniversity.ac.in domain only, with admin allowlist exceptions"
   ],
   "nonGoals": [
-    "Manual dark/light mode toggle button or user-controlled theme preference",
-    "Persisting theme choice to localStorage or backend",
-    "Any changes to backend logic or data models",
-    "Changes to authentication or identity flows"
+    "External payment processing",
+    "SMS or email notifications",
+    "Real-time WebSocket chat",
+    "Support for universities other than Jain University"
   ],
   "imageRequirements": {
     "required": [],

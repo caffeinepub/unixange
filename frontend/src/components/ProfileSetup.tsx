@@ -1,192 +1,209 @@
-import React, { useState } from 'react';
-import { User, Mail, Building2, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
+import { useState, ReactNode } from 'react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetCallerUserProfile, useSaveCallerUserProfile } from '../hooks/useQueries';
-import { isValidJainUniversityEmail } from '../utils/universityEmail';
-import AuthResolutionErrorScreen from './AuthResolutionErrorScreen';
-import { useActorInitGuard } from '../hooks/useActorInitGuard';
+import { useGetCallerUserProfile, useCreateUserProfile, useSetOnboardingAnswers, useGetOnboardingAnswers } from '../hooks/useQueries';
+import { isValidUniversityEmail, getUniversityEmailError } from '../utils/universityEmail';
+import { Loader2, GraduationCap } from 'lucide-react';
+import LoginModal from './LoginModal';
+import { useQueryClient } from '@tanstack/react-query';
 
-export default function ProfileSetup() {
-  const { identity, isInitializing: identityInitializing } = useInternetIdentity();
-  const { status: actorStatus, error: actorError, retry: retryActor } = useActorInitGuard();
+interface ProfileSetupProps {
+  children: ReactNode;
+}
 
+export default function ProfileSetup({ children }: ProfileSetupProps) {
+  const { identity, clear, isInitializing } = useInternetIdentity();
   const isAuthenticated = !!identity;
+  const queryClient = useQueryClient();
 
-  const {
-    data: userProfile,
-    isLoading: profileLoading,
-    isFetched: profileFetched,
-  } = useGetCallerUserProfile();
+  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+  const { data: onboardingAnswers, isLoading: onboardingLoading } = useGetOnboardingAnswers();
+  const createProfile = useCreateUserProfile();
+  const setOnboarding = useSetOnboardingAnswers();
 
-  const saveProfile = useSaveCallerUserProfile();
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [step, setStep] = useState<'profile' | 'onboarding'>('profile');
 
+  // Profile form state
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [university, setUniversity] = useState('Jain University');
+  const [university] = useState('Jain University');
   const [emailError, setEmailError] = useState('');
 
-  const isActorError = actorStatus === 'error';
-  const isActorTimeout = actorStatus === 'timeout';
-  const isActorReady = actorStatus === 'ready';
+  // Onboarding form state
+  const [year, setYear] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
 
-  const showProfileSetup =
-    isAuthenticated &&
-    !identityInitializing &&
-    isActorReady &&
-    !profileLoading &&
-    profileFetched &&
-    userProfile === null;
+  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+  const showOnboarding = isAuthenticated && !onboardingLoading && userProfile !== null && onboardingAnswers !== null && onboardingAnswers?.year === '';
 
-  const handleEmailChange = (val: string) => {
-    setEmail(val);
-    if (val && !isValidJainUniversityEmail(val)) {
-      setEmailError('Please use your @jainuniversity.ac.in email address.');
-    } else {
-      setEmailError('');
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (emailError || !name.trim() || !email.trim()) return;
-
+    const err = getUniversityEmailError(email);
+    if (err) { setEmailError(err); return; }
+    setEmailError('');
     try {
-      await saveProfile.mutateAsync({ name: name.trim(), email: email.trim(), university });
-    } catch {
-      // error handled by mutation state
+      await createProfile.mutateAsync({ name, email, university });
+      setStep('onboarding');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('domain') || msg.includes('jainuniversity')) {
+        setEmailError('Only @jainuniversity.ac.in email addresses are allowed.');
+      }
     }
   };
 
-  if (!isAuthenticated || identityInitializing) return null;
+  const handleOnboardingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await setOnboarding.mutateAsync({ year, address, city });
+  };
 
-  if (isActorTimeout) {
+  const handleLogout = async () => {
+    await clear();
+    queryClient.clear();
+  };
+
+  // Loading state
+  if (isInitializing || (isAuthenticated && profileLoading)) {
     return (
-      <AuthResolutionErrorScreen
-        variant="timeout"
-        onRetry={retryActor}
-      />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 text-primary animate-spin" />
+          <p className="text-muted-foreground">Loading UniXange...</p>
+        </div>
+      </div>
     );
   }
 
-  if (isActorError) {
+  // Not authenticated — show app with login modal available
+  if (!isAuthenticated) {
     return (
-      <AuthResolutionErrorScreen
-        variant="error"
-        message={actorError?.message}
-        onRetry={retryActor}
-      />
+      <>
+        {children}
+        <LoginModal open={loginModalOpen} onOpenChange={setLoginModalOpen} />
+      </>
     );
   }
 
-  if (!showProfileSetup) return null;
-
-  return (
-    <Dialog open={true} onOpenChange={() => {}}>
-      <DialogContent
-        className="max-w-md bg-card text-card-foreground border-border [&>button]:hidden"
-        onInteractOutside={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle className="text-foreground text-xl">Complete Your Profile</DialogTitle>
-          <DialogDescription className="text-muted-foreground">
-            Set up your profile to start using UniXange marketplace.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          {/* Name */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
-              <User className="inline h-4 w-4 mr-1 text-muted-foreground" />
-              Full Name *
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              placeholder="Your full name"
-              className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground"
-            />
+  // Profile setup
+  if (showProfileSetup) {
+    return (
+      <div className="min-h-screen bg-marketplace-beige flex items-center justify-center p-4">
+        <div className="bg-card rounded-xl shadow-lg p-8 w-full max-w-md border border-border">
+          <div className="flex items-center gap-2 mb-6">
+            <GraduationCap className="h-7 w-7 text-primary" />
+            <h2 className="text-2xl font-bold text-foreground">Complete Your Profile</h2>
           </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
-              <Mail className="inline h-4 w-4 mr-1 text-muted-foreground" />
-              University Email *
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => handleEmailChange(e.target.value)}
-              required
-              placeholder="you@jainuniversity.ac.in"
-              className={`w-full px-3 py-2 text-sm bg-background border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground ${
-                emailError ? 'border-destructive' : 'border-border'
-              }`}
-            />
-            {emailError && (
-              <p className="mt-1 text-xs text-destructive flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {emailError}
-              </p>
-            )}
-          </div>
-
-          {/* University */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1">
-              <Building2 className="inline h-4 w-4 mr-1 text-muted-foreground" />
-              University
-            </label>
-            <input
-              type="text"
-              value={university}
-              onChange={(e) => setUniversity(e.target.value)}
-              placeholder="Jain University"
-              className="w-full px-3 py-2 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring text-foreground placeholder:text-muted-foreground"
-            />
-          </div>
-
-          {/* Error */}
-          {saveProfile.isError && (
-            <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-destructive">
-                {(saveProfile.error as Error)?.message?.includes('university email')
-                  ? 'Please use a valid @jainuniversity.ac.in email address.'
-                  : 'Failed to save profile. Please try again.'}
-              </p>
+          <p className="text-muted-foreground text-sm mb-6">
+            Welcome to UniXange! Please set up your profile to get started.
+          </p>
+          <form onSubmit={handleProfileSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Full Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                required
+                placeholder="Your full name"
+                className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
             </div>
-          )}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">University Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => { setEmail(e.target.value); setEmailError(''); }}
+                required
+                placeholder="yourname@jainuniversity.ac.in"
+                className={`w-full px-3 py-2 border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring ${emailError ? 'border-destructive' : 'border-input'}`}
+              />
+              {emailError && <p className="text-destructive text-xs mt-1">{emailError}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">University</label>
+              <input
+                type="text"
+                value={university}
+                readOnly
+                className="w-full px-3 py-2 border border-input rounded-md bg-muted text-muted-foreground"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={createProfile.isPending}
+              className="w-full py-3 bg-primary text-primary-foreground rounded-md font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {createProfile.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              Save Profile
+            </button>
+            <button type="button" onClick={handleLogout} className="w-full py-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Logout
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
-          <button
-            type="submit"
-            disabled={saveProfile.isPending || !!emailError || !name.trim() || !email.trim()}
-            className="w-full py-2.5 text-sm font-semibold bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {saveProfile.isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="h-4 w-4" />
-                Complete Setup
-              </>
-            )}
-          </button>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
+  // Onboarding
+  if (showOnboarding && step === 'onboarding') {
+    return (
+      <div className="min-h-screen bg-marketplace-beige flex items-center justify-center p-4">
+        <div className="bg-card rounded-xl shadow-lg p-8 w-full max-w-md border border-border">
+          <h2 className="text-2xl font-bold text-foreground mb-2">Quick Setup</h2>
+          <p className="text-muted-foreground text-sm mb-6">Just a few more details to personalize your experience.</p>
+          <form onSubmit={handleOnboardingSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Year of Study</label>
+              <select
+                value={year}
+                onChange={e => setYear(e.target.value)}
+                required
+                className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">Select year</option>
+                <option value="1st Year">1st Year</option>
+                <option value="2nd Year">2nd Year</option>
+                <option value="3rd Year">3rd Year</option>
+                <option value="4th Year">4th Year</option>
+                <option value="Postgraduate">Postgraduate</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Address</label>
+              <input
+                type="text"
+                value={address}
+                onChange={e => setAddress(e.target.value)}
+                placeholder="Your address"
+                className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">City</label>
+              <input
+                type="text"
+                value={city}
+                onChange={e => setCity(e.target.value)}
+                placeholder="Your city"
+                className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={setOnboarding.isPending}
+              className="w-full py-3 bg-primary text-primary-foreground rounded-md font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {setOnboarding.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              Get Started
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 }

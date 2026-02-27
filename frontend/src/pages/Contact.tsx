@@ -1,71 +1,60 @@
-import React from 'react';
 import { Mail, MessageSquare, HelpCircle } from 'lucide-react';
 
 export default function Contact() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero */}
-      <section className="bg-primary/5 border-b border-border py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl font-extrabold text-foreground mb-4">Contact Us</h1>
+    <div className="container mx-auto px-6 py-12">
+      <div className="mx-auto max-w-3xl space-y-8">
+        <div className="space-y-4">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Contact Us</h1>
           <p className="text-lg text-muted-foreground">
-            Have questions or feedback? We'd love to hear from you.
+            We're here to help. Reach out to us with any questions or concerns.
           </p>
         </div>
-      </section>
 
-      {/* Contact Cards */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid sm:grid-cols-3 gap-6">
-          {[
-            {
-              icon: Mail,
-              title: 'General Inquiries',
-              desc: 'For general questions about UniXange',
-              email: 'hello@unixange.in',
-              color: 'text-primary',
-              bg: 'bg-primary/10',
-            },
-            {
-              icon: MessageSquare,
-              title: 'Feedback',
-              desc: 'Share your thoughts and suggestions',
-              email: 'feedback@unixange.in',
-              color: 'text-success',
-              bg: 'bg-success/10',
-            },
-            {
-              icon: HelpCircle,
-              title: 'Support',
-              desc: 'Need help with your account or listings?',
-              email: 'support@unixange.in',
-              color: 'text-warning',
-              bg: 'bg-warning/10',
-            },
-          ].map(({ icon: Icon, title, desc, email, color, bg }) => (
-            <div key={title} className="p-6 bg-card border border-border rounded-2xl text-center shadow-card">
-              <div className={`inline-flex items-center justify-center w-12 h-12 ${bg} rounded-xl mb-4`}>
-                <Icon className={`h-6 w-6 ${color}`} />
-              </div>
-              <h3 className="font-semibold text-foreground mb-2">{title}</h3>
-              <p className="text-sm text-muted-foreground mb-3">{desc}</p>
-              <a
-                href={`mailto:${email}`}
-                className="text-sm text-primary hover:underline font-medium"
-              >
-                {email}
-              </a>
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="rounded-lg border border-border bg-card p-6 space-y-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+              <Mail className="h-6 w-6 text-primary" />
             </div>
-          ))}
+            <h3 className="text-lg font-semibold text-foreground">Email Support</h3>
+            <p className="text-sm text-muted-foreground">
+              For general inquiries and support, reach out to our team via email.
+            </p>
+            <p className="text-sm font-medium text-primary">support@unixange.com</p>
+          </div>
+
+          <div className="rounded-lg border border-border bg-card p-6 space-y-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+              <MessageSquare className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground">Feedback</h3>
+            <p className="text-sm text-muted-foreground">
+              Have suggestions or feedback? We'd love to hear from you to improve UniXange.
+            </p>
+            <p className="text-sm font-medium text-primary">feedback@unixange.com</p>
+          </div>
+
+          <div className="rounded-lg border border-border bg-card p-6 space-y-3 md:col-span-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+              <HelpCircle className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground">Help & Support</h3>
+            <p className="text-sm text-muted-foreground">
+              Need help with your account, listings, or have questions about how UniXange works? 
+              Our support team is ready to assist you with any issues you may encounter.
+            </p>
+            <p className="text-sm font-medium text-primary">help@unixange.com</p>
+          </div>
         </div>
 
-        <div className="mt-12 p-6 bg-card border border-border rounded-2xl text-center">
-          <h2 className="text-xl font-bold text-foreground mb-3">Campus Community</h2>
-          <p className="text-muted-foreground text-sm leading-relaxed max-w-xl mx-auto">
-            UniXange is a student-run platform for Jain University. We're always looking to improve and value your feedback. Reach out to us anytime — we typically respond within 24 hours.
+        <div className="rounded-lg border border-border bg-accent/50 p-6 space-y-3">
+          <h3 className="text-lg font-semibold text-foreground">Response Time</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            We typically respond to all inquiries within 24-48 hours during business days. 
+            For urgent matters, please mark your email as "Urgent" in the subject line.
           </p>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,39 +10,37 @@ import {
 } from '@/components/ui/alert-dialog';
 
 interface DeleteConfirmationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
-  itemTitle: string;
+  title?: string;
+  description?: string;
+  isLoading?: boolean;
 }
 
 export default function DeleteConfirmationModal({
-  isOpen,
-  onClose,
+  open,
+  onOpenChange,
   onConfirm,
-  itemTitle,
+  title = 'Delete Item',
+  description = 'Are you sure you want to delete this item? This action cannot be undone.',
+  isLoading = false,
 }: DeleteConfirmationModalProps) {
   return (
-    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent className="bg-card text-card-foreground border-border">
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="bg-card border-border backdrop-blur-sm">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-foreground">Delete Item</AlertDialogTitle>
-          <AlertDialogDescription className="text-muted-foreground">
-            Are you sure you want to delete <span className="font-medium text-foreground">"{itemTitle}"</span>? This action cannot be undone.
-          </AlertDialogDescription>
+          <AlertDialogTitle className="text-foreground">{title}</AlertDialogTitle>
+          <AlertDialogDescription className="text-muted-foreground">{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel
-            onClick={onClose}
-            className="border-border text-foreground hover:bg-accent"
-          >
-            Cancel
-          </AlertDialogCancel>
+          <AlertDialogCancel className="border-border text-foreground hover:bg-accent">Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={isLoading}
+            className="bg-destructive text-destructive-foreground hover:opacity-90"
           >
-            Delete
+            {isLoading ? 'Deleting...' : 'Delete'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -108,6 +108,7 @@ export interface BuySellItem {
     title: string;
     storageBlobs: Array<ExternalBlob>;
     description: string;
+    whatsappNumber: string;
     category: string;
     sellerId: UserId;
     price: Rupee;
@@ -125,6 +126,7 @@ export interface RentalItem {
     storageBlobs: Array<ExternalBlob>;
     description: string;
     available: boolean;
+    whatsappNumber: string;
     category: string;
     dailyPrice: Rupee;
     condition: string;
@@ -179,8 +181,9 @@ export interface backendInterface {
     _caffeineStorageRefillCashier(refillInformation: _CaffeineStorageRefillInformation | null): Promise<_CaffeineStorageRefillResult>;
     _caffeineStorageUpdateGatewayPrincipals(): Promise<void>;
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
-    addBuySellItem(title: string, description: string, price: Rupee, condition: string, category: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>, isFromSellSection: boolean): Promise<void>;
-    addItem(section: Variant_found_lost_rent_buySell, title: string, description: string, price: Rupee | null, dailyPrice: Rupee | null, condition: string | null, category: string | null, location: string | null, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
+    addBuySellItem(title: string, description: string, price: Rupee, condition: string, category: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>, isFromSellSection: boolean, whatsappNumber: string): Promise<void>;
+    addItem(section: Variant_found_lost_rent_buySell, title: string, description: string, price: Rupee | null, dailyPrice: Rupee | null, condition: string | null, category: string | null, location: string | null, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>, whatsappNumber: string | null): Promise<void>;
+    addNonUniversityPrincipal(principal: Principal): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createUserProfile(profile: UserProfile): Promise<void>;
     deleteItem(itemId: ItemId): Promise<void>;
@@ -193,15 +196,19 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getLostFoundItem(itemId: ItemId): Promise<LostFoundItem | null>;
     getLostFoundItems(): Promise<Array<LostFoundItem>>;
+    getNonUniversityPrincipals(): Promise<Array<Principal>>;
     getOnboardingAnswers(): Promise<OnboardingAnswers | null>;
     getRentalItem(itemId: ItemId): Promise<RentalItem | null>;
     getRentalItems(): Promise<Array<RentalItem>>;
     getUserProfile(user: UserId): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
-    listForRent(title: string, description: string, dailyPrice: Rupee, condition: string, category: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
+    isCampusMember(): Promise<boolean>;
+    isNonUniversityPrincipal(principal: Principal): Promise<boolean>;
+    listForRent(title: string, description: string, dailyPrice: Rupee, condition: string, category: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>, whatsappNumber: string): Promise<void>;
     markAsRecovered(itemId: ItemId): Promise<void>;
     postFoundItem(title: string, description: string, location: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
     postLostItem(title: string, description: string, location: string, images: Array<Uint8Array>, storageBlobs: Array<ExternalBlob>): Promise<void>;
+    removeNonUniversityPrincipal(principal: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     setOnboardingAnswers(answers: OnboardingAnswers): Promise<void>;
     toMinimalItemList(): Promise<Array<MinimalItem>>;
@@ -307,31 +314,45 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async addBuySellItem(arg0: string, arg1: string, arg2: Rupee, arg3: string, arg4: string, arg5: Array<Uint8Array>, arg6: Array<ExternalBlob>, arg7: boolean): Promise<void> {
+    async addBuySellItem(arg0: string, arg1: string, arg2: Rupee, arg3: string, arg4: string, arg5: Array<Uint8Array>, arg6: Array<ExternalBlob>, arg7: boolean, arg8: string): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.addBuySellItem(arg0, arg1, arg2, arg3, arg4, arg5, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg6), arg7);
+                const result = await this.actor.addBuySellItem(arg0, arg1, arg2, arg3, arg4, arg5, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg6), arg7, arg8);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addBuySellItem(arg0, arg1, arg2, arg3, arg4, arg5, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg6), arg7);
+            const result = await this.actor.addBuySellItem(arg0, arg1, arg2, arg3, arg4, arg5, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg6), arg7, arg8);
             return result;
         }
     }
-    async addItem(arg0: Variant_found_lost_rent_buySell, arg1: string, arg2: string, arg3: Rupee | null, arg4: Rupee | null, arg5: string | null, arg6: string | null, arg7: string | null, arg8: Array<Uint8Array>, arg9: Array<ExternalBlob>): Promise<void> {
+    async addItem(arg0: Variant_found_lost_rent_buySell, arg1: string, arg2: string, arg3: Rupee | null, arg4: Rupee | null, arg5: string | null, arg6: string | null, arg7: string | null, arg8: Array<Uint8Array>, arg9: Array<ExternalBlob>, arg10: string | null): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.addItem(to_candid_variant_n10(this._uploadFile, this._downloadFile, arg0), arg1, arg2, to_candid_opt_n11(this._uploadFile, this._downloadFile, arg3), to_candid_opt_n11(this._uploadFile, this._downloadFile, arg4), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg5), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg6), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg7), arg8, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg9));
+                const result = await this.actor.addItem(to_candid_variant_n10(this._uploadFile, this._downloadFile, arg0), arg1, arg2, to_candid_opt_n11(this._uploadFile, this._downloadFile, arg3), to_candid_opt_n11(this._uploadFile, this._downloadFile, arg4), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg5), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg6), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg7), arg8, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg9), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg10));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addItem(to_candid_variant_n10(this._uploadFile, this._downloadFile, arg0), arg1, arg2, to_candid_opt_n11(this._uploadFile, this._downloadFile, arg3), to_candid_opt_n11(this._uploadFile, this._downloadFile, arg4), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg5), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg6), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg7), arg8, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg9));
+            const result = await this.actor.addItem(to_candid_variant_n10(this._uploadFile, this._downloadFile, arg0), arg1, arg2, to_candid_opt_n11(this._uploadFile, this._downloadFile, arg3), to_candid_opt_n11(this._uploadFile, this._downloadFile, arg4), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg5), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg6), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg7), arg8, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg9), to_candid_opt_n12(this._uploadFile, this._downloadFile, arg10));
+            return result;
+        }
+    }
+    async addNonUniversityPrincipal(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addNonUniversityPrincipal(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addNonUniversityPrincipal(arg0);
             return result;
         }
     }
@@ -503,6 +524,20 @@ export class Backend implements backendInterface {
             return from_candid_vec_n27(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getNonUniversityPrincipals(): Promise<Array<Principal>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getNonUniversityPrincipals();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getNonUniversityPrincipals();
+            return result;
+        }
+    }
     async getOnboardingAnswers(): Promise<OnboardingAnswers | null> {
         if (this.processError) {
             try {
@@ -573,17 +608,45 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async listForRent(arg0: string, arg1: string, arg2: Rupee, arg3: string, arg4: string, arg5: Array<Uint8Array>, arg6: Array<ExternalBlob>): Promise<void> {
+    async isCampusMember(): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.listForRent(arg0, arg1, arg2, arg3, arg4, arg5, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg6));
+                const result = await this.actor.isCampusMember();
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.listForRent(arg0, arg1, arg2, arg3, arg4, arg5, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg6));
+            const result = await this.actor.isCampusMember();
+            return result;
+        }
+    }
+    async isNonUniversityPrincipal(arg0: Principal): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.isNonUniversityPrincipal(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.isNonUniversityPrincipal(arg0);
+            return result;
+        }
+    }
+    async listForRent(arg0: string, arg1: string, arg2: Rupee, arg3: string, arg4: string, arg5: Array<Uint8Array>, arg6: Array<ExternalBlob>, arg7: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.listForRent(arg0, arg1, arg2, arg3, arg4, arg5, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg6), arg7);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.listForRent(arg0, arg1, arg2, arg3, arg4, arg5, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg6), arg7);
             return result;
         }
     }
@@ -626,6 +689,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.postLostItem(arg0, arg1, arg2, arg3, await to_candid_vec_n8(this._uploadFile, this._downloadFile, arg4));
+            return result;
+        }
+    }
+    async removeNonUniversityPrincipal(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.removeNonUniversityPrincipal(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.removeNonUniversityPrincipal(arg0);
             return result;
         }
     }
@@ -722,6 +799,7 @@ async function from_candid_record_n17(_uploadFile: (file: ExternalBlob) => Promi
     title: string;
     storageBlobs: Array<_ExternalBlob>;
     description: string;
+    whatsappNumber: string;
     category: string;
     sellerId: _UserId;
     price: _Rupee;
@@ -733,6 +811,7 @@ async function from_candid_record_n17(_uploadFile: (file: ExternalBlob) => Promi
     title: string;
     storageBlobs: Array<ExternalBlob>;
     description: string;
+    whatsappNumber: string;
     category: string;
     sellerId: UserId;
     price: Rupee;
@@ -745,6 +824,7 @@ async function from_candid_record_n17(_uploadFile: (file: ExternalBlob) => Promi
         title: value.title,
         storageBlobs: await from_candid_vec_n18(_uploadFile, _downloadFile, value.storageBlobs),
         description: value.description,
+        whatsappNumber: value.whatsappNumber,
         category: value.category,
         sellerId: value.sellerId,
         price: value.price,
@@ -790,6 +870,7 @@ async function from_candid_record_n31(_uploadFile: (file: ExternalBlob) => Promi
     storageBlobs: Array<_ExternalBlob>;
     description: string;
     available: boolean;
+    whatsappNumber: string;
     category: string;
     dailyPrice: _Rupee;
     condition: string;
@@ -801,6 +882,7 @@ async function from_candid_record_n31(_uploadFile: (file: ExternalBlob) => Promi
     storageBlobs: Array<ExternalBlob>;
     description: string;
     available: boolean;
+    whatsappNumber: string;
     category: string;
     dailyPrice: Rupee;
     condition: string;
@@ -813,6 +895,7 @@ async function from_candid_record_n31(_uploadFile: (file: ExternalBlob) => Promi
         storageBlobs: await from_candid_vec_n18(_uploadFile, _downloadFile, value.storageBlobs),
         description: value.description,
         available: value.available,
+        whatsappNumber: value.whatsappNumber,
         category: value.category,
         dailyPrice: value.dailyPrice,
         condition: value.condition,

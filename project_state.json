@@ -1,34 +1,61 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "App with beige and white interface (Version 44), now adding system-based dark/light mode theme switching.",
+  "summary": "UniXange is a university marketplace app for Jain University students. It is a buy/sell/rent/lost & found platform with Internet Identity login gated to @jainuniversity.ac.in domain, beige + black OLX-inspired theme, profile avatar dropdown, chat feature, professional footer, and item creation modal with ₹ pricing.",
   "architectural_notes": [
-    "Theme uses Tailwind CSS dark mode with prefers-color-scheme media query, updating in real-time on OS theme change"
+    "Backend canister ID: oryfz-4aaaa-aaaao-a5ruq-cai (previously stopped; needs fresh deploy)",
+    "Authentication uses Internet Identity gated to @jainuniversity.ac.in domain"
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "Backend canister stopped causing 'Service Temporarily Unavailable'; requires redeployment"
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-configure-tailwind-css-to-use-class-dark-mode-strategy-and-ensure-all-existing-color-tokens-and-utility-classes-have-appropriate-dark-mode-variants-defined-in-the-css-theme-variables-frontend-src-index-css-and-frontend-tailwind-config-js",
-      "title": "Configure Tailwind CSS to use 'class' dark mode strategy and ensure all existing color tokens and utility classes have appropriate dark mode variants defined in the CSS theme variables (frontend/src/index.css and frontend/tailwind.config.js).",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-create-a-themeprovider-component-or-update-the-existing-one-in-app-tsx-that-reads-the-user-s-system-preference-via-the-window-matchmedia-prefers-color-scheme-dark-api-on-initial-load-applies-the-dark-class-to-the-document-root-element-accordingly-and-listens-for-system-preference-changes-in-real-time-to-update-the-theme-automatically",
-      "title": "Create a ThemeProvider component (or update the existing one in App.tsx) that reads the user's system preference via the window.matchMedia('(prefers-color-scheme: dark)') API on initial load, applies the 'dark' class to the document root element accordingly, and listens for system preference changes in real-time to update the theme automatically.",
+      "id": "feature-rebuild-the-full-react-frontend-for-unixange-with-all-pages-homepage-hero-category-browse-recent-listings-buy-section-sell-section-authenticated-user-s-listings-rent-section-lost-found-section-item-detail-page-about-contact-privacy-and-terms-pages",
+      "title": "Rebuild the full React frontend for UniXange with all pages: Homepage (hero + category browse + recent listings), Buy Section, Sell Section (authenticated user's listings), Rent Section, Lost & Found Section, Item Detail page, About, Contact, Privacy, and Terms pages.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-all-page-and-component-files-header-footer-homepage-buysection-rentsection-sellsection-lostfoundsection-about-contact-privacy-terms-itemcard-additemmodal-deleteconfirmationmodal-loginmodal-profilesetup-profileavatarmenu-floatingaddbutton-authresolutionerrorscreen-to-apply-tailwind-dark-mode-variants-dark-so-backgrounds-text-borders-cards-modals-and-inputs-render-correctly-in-both-light-and-dark-themes",
-      "title": "Update all page and component files (Header, Footer, Homepage, BuySection, RentSection, SellSection, LostFoundSection, About, Contact, Privacy, Terms, ItemCard, AddItemModal, DeleteConfirmationModal, LoginModal, ProfileSetup, ProfileAvatarMenu, FloatingAddButton, AuthResolutionErrorScreen) to apply Tailwind dark mode variants (dark:) so backgrounds, text, borders, cards, modals, and inputs render correctly in both light and dark themes.",
+      "id": "feature-implement-internet-identity-authentication-gated-to-jainuniversity-ac-in-university-email-domain-with-a-login-modal-showing-login-signup-views-loading-state-and-access-denied-state-for-non-jain-university-accounts",
+      "title": "Implement Internet Identity authentication gated to @jainuniversity.ac.in university email domain, with a login modal showing login/signup views, loading state, and access-denied state for non-Jain University accounts.",
       "reqIds": [
         "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-beige-and-black-olx-inspired-visual-theme-consistently-across-the-entire-app-including-css-custom-properties-tailwind-config-tokens-and-component-styles",
+      "title": "Apply a beige and black OLX-inspired visual theme consistently across the entire app, including CSS custom properties, Tailwind config tokens, and component styles.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-profile-avatar-dropdown-in-the-header-that-displays-the-logged-in-user-s-name-email-and-university-and-provides-a-logout-action-the-avatar-must-be-visible-and-accessible-on-both-desktop-and-mobile-views",
+      "title": "Implement a profile avatar dropdown in the header that displays the logged-in user's name, email, and university, and provides a logout action. The avatar must be visible and accessible on both desktop and mobile views.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-add-item-modal-form-that-allows-authenticated-users-to-post-new-listings-across-all-categories-buy-sell-rent-lost-found-with-fields-for-title-description-with-ai-generated-description-support-category-condition-price-in-image-upload-and-whatsapp-contact-number",
+      "title": "Implement an Add Item modal form that allows authenticated users to post new listings across all categories (buy/sell/rent/lost/found) with fields for title, description (with AI-generated description support), category, condition, price in ₹, image upload, and WhatsApp contact number.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-basic-in-app-chat-feature-allowing-authenticated-users-to-message-each-other-about-listings",
+      "title": "Implement a basic in-app chat feature allowing authenticated users to message each other about listings.",
+      "reqIds": [
+        "REQ-7"
       ],
       "version": 1
     }
@@ -36,13 +63,57 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Dark/light mode theme that automatically switches based on system preference (prefers-color-scheme)",
+      "summary": "Buy/Sell/Rent/Lost & Found marketplace sections",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Internet Identity login gated to @jainuniversity.ac.in domain",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Beige + black OLX-inspired theme",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Profile avatar dropdown",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Chat feature between users",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Professional footer",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Item creation modal with ₹ pricing",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Rebuild the full UniXchange backend actor in Motoko with all data types and logic: buy/sell items, rental items, lost & found items, user profiles with @jainuniversity.ac.in email validation, admin email allowlist bypass, and all CRUD operations for each item category.",
+      "reqIds": [
+        "REQ-1"
+      ],
       "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "Add system-based dark/light mode theme switching",
+  "projectName": "UniXange",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

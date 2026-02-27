@@ -1,102 +1,86 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @layer base {
   :root {
-    /* Light mode - beige/white marketplace theme */
-    --background: oklch(0.98 0.008 80);
-    --foreground: oklch(0.15 0.02 60);
+    /* OLX-inspired beige & black marketplace palette */
+    --background: oklch(0.97 0.012 85);
+    --foreground: oklch(0.13 0.02 60);
 
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.15 0.02 60);
+    --card-foreground: oklch(0.13 0.02 60);
 
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.15 0.02 60);
+    --popover-foreground: oklch(0.13 0.02 60);
 
-    --primary: oklch(0.52 0.18 220);
+    --primary: oklch(0.55 0.18 35);
     --primary-foreground: oklch(1 0 0);
 
-    --secondary: oklch(0.94 0.015 80);
-    --secondary-foreground: oklch(0.25 0.02 60);
+    --secondary: oklch(0.92 0.025 85);
+    --secondary-foreground: oklch(0.2 0.02 60);
 
-    --muted: oklch(0.94 0.012 80);
-    --muted-foreground: oklch(0.50 0.02 60);
+    --muted: oklch(0.93 0.018 85);
+    --muted-foreground: oklch(0.5 0.02 60);
 
-    --accent: oklch(0.92 0.02 80);
-    --accent-foreground: oklch(0.25 0.02 60);
+    --accent: oklch(0.88 0.04 85);
+    --accent-foreground: oklch(0.2 0.02 60);
 
     --destructive: oklch(0.55 0.22 25);
     --destructive-foreground: oklch(1 0 0);
 
-    --border: oklch(0.88 0.015 80);
-    --input: oklch(0.88 0.015 80);
-    --ring: oklch(0.52 0.18 220);
-
-    --success: oklch(0.55 0.18 145);
-    --success-foreground: oklch(1 0 0);
-
-    --warning: oklch(0.72 0.18 75);
-    --warning-foreground: oklch(0.15 0.02 60);
-
-    /* Marketplace-specific tokens */
-    --surface: oklch(0.97 0.01 80);
-    --surface-hover: oklch(0.94 0.015 80);
-    --hero-bg: oklch(0.52 0.18 220);
-    --hero-fg: oklch(1 0 0);
-    --price-color: oklch(0.35 0.18 145);
-    --badge-bg: oklch(0.92 0.04 220);
-    --badge-fg: oklch(0.35 0.18 220);
+    --border: oklch(0.85 0.02 85);
+    --input: oklch(0.85 0.02 85);
+    --ring: oklch(0.55 0.18 35);
 
     --radius: 0.5rem;
+
+    /* Header cream */
+    --header-cream: oklch(0.96 0.025 85);
+
+    /* Marketplace specific */
+    --marketplace-beige: oklch(0.95 0.03 85);
+    --marketplace-dark: oklch(0.13 0.02 60);
+    --marketplace-orange: oklch(0.65 0.18 50);
+    --marketplace-orange-hover: oklch(0.58 0.18 50);
   }
 
   .dark {
-    /* Dark mode - deep slate/charcoal theme */
-    --background: oklch(0.13 0.01 260);
-    --foreground: oklch(0.93 0.01 80);
+    --background: oklch(0.13 0.02 60);
+    --foreground: oklch(0.95 0.012 85);
 
-    --card: oklch(0.18 0.015 260);
-    --card-foreground: oklch(0.93 0.01 80);
+    --card: oklch(0.18 0.02 60);
+    --card-foreground: oklch(0.95 0.012 85);
 
-    --popover: oklch(0.18 0.015 260);
-    --popover-foreground: oklch(0.93 0.01 80);
+    --popover: oklch(0.18 0.02 60);
+    --popover-foreground: oklch(0.95 0.012 85);
 
-    --primary: oklch(0.60 0.18 220);
-    --primary-foreground: oklch(1 0 0);
+    --primary: oklch(0.65 0.18 50);
+    --primary-foreground: oklch(0.1 0.02 60);
 
-    --secondary: oklch(0.22 0.02 260);
-    --secondary-foreground: oklch(0.85 0.01 80);
+    --secondary: oklch(0.22 0.02 60);
+    --secondary-foreground: oklch(0.9 0.012 85);
 
-    --muted: oklch(0.22 0.02 260);
-    --muted-foreground: oklch(0.60 0.02 260);
+    --muted: oklch(0.22 0.02 60);
+    --muted-foreground: oklch(0.65 0.02 85);
 
-    --accent: oklch(0.25 0.025 260);
-    --accent-foreground: oklch(0.85 0.01 80);
+    --accent: oklch(0.25 0.025 60);
+    --accent-foreground: oklch(0.9 0.012 85);
 
     --destructive: oklch(0.55 0.22 25);
     --destructive-foreground: oklch(1 0 0);
 
-    --border: oklch(0.28 0.02 260);
-    --input: oklch(0.28 0.02 260);
-    --ring: oklch(0.60 0.18 220);
+    --border: oklch(0.28 0.02 60);
+    --input: oklch(0.28 0.02 60);
+    --ring: oklch(0.65 0.18 50);
 
-    --success: oklch(0.55 0.18 145);
-    --success-foreground: oklch(1 0 0);
-
-    --warning: oklch(0.72 0.18 75);
-    --warning-foreground: oklch(0.15 0.02 60);
-
-    /* Marketplace-specific tokens - dark */
-    --surface: oklch(0.16 0.012 260);
-    --surface-hover: oklch(0.22 0.02 260);
-    --hero-bg: oklch(0.25 0.06 220);
-    --hero-fg: oklch(0.93 0.01 80);
-    --price-color: oklch(0.65 0.18 145);
-    --badge-bg: oklch(0.22 0.04 220);
-    --badge-fg: oklch(0.70 0.15 220);
+    --header-cream: oklch(0.18 0.025 60);
+    --marketplace-beige: oklch(0.2 0.02 60);
+    --marketplace-dark: oklch(0.95 0.012 85);
+    --marketplace-orange: oklch(0.65 0.18 50);
+    --marketplace-orange-hover: oklch(0.7 0.18 50);
   }
 }
 
@@ -104,39 +88,20 @@
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground font-inter;
-    font-feature-settings: "rlig" 1, "calt" 1;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-inter;
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', sans-serif;
   }
 }
 
 @layer utilities {
-  .shadow-marketplace {
-    box-shadow: 0 2px 8px oklch(0.15 0.02 60 / 0.08), 0 1px 3px oklch(0.15 0.02 60 / 0.06);
+  .marketplace-shadow {
+    box-shadow: 0 2px 8px oklch(0.13 0.02 60 / 0.12);
   }
-
-  .dark .shadow-marketplace {
-    box-shadow: 0 2px 8px oklch(0 0 0 / 0.3), 0 1px 3px oklch(0 0 0 / 0.2);
+  .marketplace-shadow-lg {
+    box-shadow: 0 4px 20px oklch(0.13 0.02 60 / 0.15);
   }
-
-  .shadow-marketplace-hover {
-    box-shadow: 0 4px 16px oklch(0.15 0.02 60 / 0.12), 0 2px 6px oklch(0.15 0.02 60 / 0.08);
-  }
-
-  .dark .shadow-marketplace-hover {
-    box-shadow: 0 4px 16px oklch(0 0 0 / 0.4), 0 2px 6px oklch(0 0 0 / 0.25);
-  }
-
-  .shadow-card {
-    box-shadow: 0 1px 4px oklch(0.15 0.02 60 / 0.06), 0 1px 2px oklch(0.15 0.02 60 / 0.04);
-  }
-
-  .dark .shadow-card {
-    box-shadow: 0 1px 4px oklch(0 0 0 / 0.25), 0 1px 2px oklch(0 0 0 / 0.15);
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
   }
 }
